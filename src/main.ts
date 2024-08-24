@@ -37,5 +37,5 @@ const onloadEvent = (event : ProgramEvent) : void => {
 }
 
 
-window.onload = () : void => (new Program(256, 576, 192, 192, 0.60)).run(initialEvent, initialScreen, onloadEvent);
+window.onload = () : void => (new Program(160, 640, 160, 640, 0.60)).run(initialEvent, initialScreen, onloadEvent);
 

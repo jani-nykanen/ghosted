@@ -19,29 +19,39 @@ const PALETTE_TABLE : number[] = [
 
     0, // 1 Black
     511, // 2 White
-    0b011011011, // 3 Dark gray
-    0b101101101, // 4 Light gray
 
+    // Walls
+    0b010010010, // 3 Darkest gray
+    0b100100100, // 4 Just gray
+    0b110110110, // 5 Very light gray
+
+    // Player skin
+    0b110100000, // 6 Darker beige
+    0b111110100, // 7 Light beige
 ];
 
 
 const GAME_ART_PALETTE_TABLE : string[] = [
 
+    "1452", "1453", "1452", "1452" ,"1452", "1453", "0000", "0000",
+    "1452", "1453", "1452", "1453" ,"1452", "1453", "0000", "0000",
+    "1067", "1067", "1067", "1067", "1067", "1067", "1067", "1067",
+    "1067", "1067", "1067", "1067", "1067", "1067", "1067", "1067",
 ];
 
 
 
 const generatePaletteLookup = () : PaletteLookup => {
 
-    const MULTIPLIER : number = 255/7;
+    const MULTIPLIER : number = 255.0/7.0;
 
     const out : number[][] = new Array<number[]> ();
 
     for (let i = 0; i < 512; ++ i) {
 
-        const r : number = (i << 6) & (0b111000000);
-        const g : number = (i << 3) & (0b111000);
-        const b : number = i & (0b111);
+        let r : number = (i >> 6) & 7;
+        let g : number = (i >> 3) & 7;
+        let b : number = i & 7;
 
         out[i] = [
             (r*MULTIPLIER) | 0, 
@@ -49,6 +59,7 @@ const generatePaletteLookup = () : PaletteLookup => {
             (b*MULTIPLIER) | 0,
             i == TRANSPARENT_COLOR ? 0 : 255];
     }
+    
     return out as PaletteLookup;
 }
 

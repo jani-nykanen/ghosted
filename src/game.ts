@@ -13,9 +13,24 @@ export class Game implements Scene {
     private baseMap : Tilemap | undefined = undefined;
     private wallMap : number[] | undefined = undefined;
 
+    private width : number = 0;
+    private height : number = 0;
+
 
     constructor() {
 
+    }
+
+
+    private drawFloor(canvas : Canvas) : void {
+
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                canvas.fillRect(x*16, y*16, 16, 16, x % 2 == y % 2 ? "#ffdb92" : "#dbb66d");
+            }
+        }
     }
 
 
@@ -25,6 +40,9 @@ export class Game implements Scene {
 
         this.baseMap = new Tilemap(LEVEL_DATA[0]);
         this.wallMap = generateWallMap(this.baseMap);
+
+        this.width = this.baseMap.width;
+        this.height = this.baseMap.height;
     }
 
 
@@ -40,6 +58,7 @@ export class Game implements Scene {
         // canvas.drawBitmap(BITMAP_GAME_ART, Flip.None, 16, 16);
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
+        this.drawFloor(canvas);
         drawWallMap(canvas, this.wallMap, this.baseMap.width, this.baseMap.height);
         canvas.moveTo();
     }

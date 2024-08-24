@@ -1,9 +1,8 @@
 import { applyPalette, createBigText, cropBitmap } from "./bitmapgenerator.js";
 import { Bitmap, Canvas } from "./canvas.js";
-// import { AudioPlayer } from "../audio/audioplayer.js";
 import { Ramp } from "./sample.js";
 import { ProgramEvent } from "./event.js";
-import { BITMAP_FONT_WHITE, BITMAP_GAME_ART, BITMAP_RAW_FONT, BITMAP_RAW_GAME_ART } from "./mnemonics.js";
+import { BitmapAsset } from "./mnemonics.js";
 
 
 
@@ -28,6 +27,11 @@ const PALETTE_TABLE : number[] = [
     // Player skin
     0b110100000, // 6 Darker beige
     0b111110100, // 7 Light beige
+
+    // Falling platform
+    0b100010000, // 8 Brown
+    0b100001000, // 9 Dark red
+    0b110001000, // A Red
 ];
 
 
@@ -37,6 +41,9 @@ const GAME_ART_PALETTE_TABLE : string[] = [
     "1452", "1453", "1452", "1453" ,"1452", "1453", "0000", "0000",
     "1067", "1067", "1067", "1067", "1067", "1067", "1067", "1067",
     "1067", "1067", "1067", "1067", "1067", "1067", "1067", "1067",
+    "1076", "1076", "009A", "0000", "0000", "0000", "0000", "0000",
+    "1086", "1086", "0000", "0000", "0000", "0000", "0000", "0000",
+    "1086", "1086", "0000", "0000", "0000", "0000", "0000", "0000",
 ];
 
 
@@ -67,8 +74,8 @@ const generatePaletteLookup = () : PaletteLookup => {
 
 const generateGameArt = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
 
-    event.addBitmap(BITMAP_GAME_ART, 
-        applyPalette(event.getBitmap(BITMAP_RAW_GAME_ART), 
+    event.addBitmap(BitmapAsset.GameArt, 
+        applyPalette(event.getBitmap(BitmapAsset.RawGameArt), 
             GAME_ART_PALETTE_TABLE, PALETTE_TABLE, rgb333)
         );
 }
@@ -77,12 +84,12 @@ const generateGameArt = (rgb333 : PaletteLookup, event : ProgramEvent) : void =>
 
 const generateFonts = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
 
-    const bmpFontRaw : Bitmap = event.getBitmap(BITMAP_RAW_FONT);
+    const bmpFontRaw : Bitmap = event.getBitmap(BitmapAsset.RawFont);
     const fontWhite : Bitmap = applyPalette(bmpFontRaw, 
         (new Array<string>(16*4)).fill("0002"), 
         PALETTE_TABLE, rgb333);
 
-    event.addBitmap(BITMAP_FONT_WHITE, fontWhite);
+    event.addBitmap(BitmapAsset.FontWhite, fontWhite);
 }
 
 

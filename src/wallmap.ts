@@ -1,5 +1,5 @@
 import { Canvas, Flip } from "./canvas.js";
-import { BITMAP_GAME_ART } from "./mnemonics.js";
+import { BitmapAsset } from "./mnemonics.js";
 import { Tilemap } from "./tilemap.js";
 
 
@@ -146,7 +146,7 @@ export const drawWallMap = (canvas : Canvas, wallMap : number[], width : number,
             const sx : number = tileID % 6;
             const sy : number = (tileID/6) | 0;
 
-            canvas.drawBitmap(BITMAP_GAME_ART, Flip.None, x*8, y*8, sx*8, sy*8, 8, 8);
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, x*8, y*8, sx*8, sy*8, 8, 8);
         }
     }
 }

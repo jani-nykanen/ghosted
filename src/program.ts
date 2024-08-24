@@ -74,6 +74,7 @@ export class Program {
                     this.initialized = true;
                     this.event.initialize();
                     onLoad(this.event);
+                    this.event.activeScene?.onChange?.(undefined, this.event);
                     this.event.updateInput();
                     break;
                 }

@@ -1,6 +1,6 @@
 JS_FILES := $(wildcard js/*.js) $(wildcard js/*/*.js) $(wildcard js/*/*/*.js)
 
-LEVEL_SRC_PATH := src/game/leveldata.ts
+LEVEL_SRC_PATH := src/leveldata.ts
 
 
 ###########################
@@ -63,7 +63,7 @@ dist: compress pack zip clear_temp
 
 .PHONY: levels
 levels:
-	echo -n "export const LEVEL_DATA = " > $(LEVEL_SRC_PATH)
+	echo -n "export const LEVEL_DATA : string[] = " > $(LEVEL_SRC_PATH)
 	./levels/convert.py >> $(LEVEL_SRC_PATH)
 
 

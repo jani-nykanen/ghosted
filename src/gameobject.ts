@@ -88,6 +88,9 @@ export class GameObject {
 
         if (direction != Direction.None) {
 
+            // Change the direction even if cannot move
+            this.direction = direction;
+
             const dir : Vector = directionToVector(direction);
             this.moveTo(activeState, this.pos.x + dir.x, this.pos.y + dir.y);
         }
@@ -112,16 +115,40 @@ export class GameObject {
 
     private drawPlayer(canvas : Canvas) : void {
 
-        const flip : Flip = Number(this.direction == Direction.Left) as Flip;
+        const HORIZONTAL_BODY_FRAME_LOOKUP : number[] = [0, 1, 0, 2];
 
         const dy : number = this.renderPos.y - 6;
 
+        const frame : number = ((this.moveTimer*2) | 0) + Number(this.pos.x % 2 == this.pos.y % 2)*2;
+        if (this.direction % 2 == 0) {
+
+            const flip : Flip = (Number(frame == 3)) as Flip;
+            const odd : number = frame % 2;
+            const headY : number = 1 - ((this.direction/3) | 0);
+
+            // Head
+            canvas.drawBitmap(BitmapAsset.GameArt, flip,
+                this.renderPos.x, dy + odd, 0, 16 + headY*8, 16, 8);
+            // Body
+            canvas.drawBitmap(BitmapAsset.GameArt, flip,
+                this.renderPos.x, dy + 8, 32 + 16*(frame % 2), 16, 16, 8);
+
+            // Chin/neck
+            canvas.fillRect(this.renderPos.x + 6, dy + 9 + odd - headY*2, 4, 1, "#000000");
+
+            return;
+        }
+
+        const flip : Flip = (Number(this.direction == Direction.Left)) as Flip;
         // Head
         canvas.drawBitmap(BitmapAsset.GameArt, flip,
-            this.renderPos.x, dy, 0, 16, 16, 8);
+            this.renderPos.x, dy + (frame % 2), 16, 16, 16, 8);
         // Body
         canvas.drawBitmap(BitmapAsset.GameArt, flip,
-            this.renderPos.x, dy + 8, 32, 16, 16, 8);
+            this.renderPos.x, dy + 8, 
+            16 + 16*HORIZONTAL_BODY_FRAME_LOOKUP[frame], 
+            24, 16, 8);
+
     }
 
 

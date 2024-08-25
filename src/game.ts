@@ -161,7 +161,7 @@ export class Game implements Scene {
 
     public update(event : ProgramEvent) : void {
 
-        const MOVE_SPEED : number = 1.0/8.0;
+        const MOVE_SPEED : number = 1.0/16.0;
 
         for (let o of this.objects) {
 

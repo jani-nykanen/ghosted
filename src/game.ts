@@ -6,6 +6,7 @@ import { Tilemap } from "./tilemap.js";
 import { LEVEL_DATA } from "./leveldata.js";
 import { drawWallMap, generateWallMap } from "./wallmap.js";
 import { PuzzleState } from "./puzzlestate.js";
+import { GameObject, GameObjectType } from "./gameobject.js";
 
 
 const FLOOR_TILES : number[] = [0, 3, 4];
@@ -24,28 +25,54 @@ export class Game implements Scene {
     private width : number = 0;
     private height : number = 0;
 
+    private objects : GameObject[];
+
 
     constructor() {
 
         this.states = new Array<PuzzleState> ();
+
+        this.objects = new Array<GameObject> ();
+    }
+
+
+    private parseInitialObject() : void {
+
+        this.activeState.iterate(1, (id : number, x : number, y : number) : void => {
+
+            switch (id) {
+
+            // Player
+            case 2:
+
+                this.objects.push(new GameObject(GameObjectType.Player, x, y));
+                break;
+
+            default:
+                break;
+            }
+
+        });
     }
 
 
     private drawBackgroundGrid(canvas : Canvas) : void {
 
+        const GRID_SIZE : number = 32;
+
         canvas.setColor("#4992ff");
 
-        const loopx : number = canvas.width/32 + 1;
-        const loopy : number = canvas.height/32 + 1
+        const loopx : number = ((canvas.width/GRID_SIZE + 1)/2) | 0;
+        const loopy : number = ((canvas.height/GRID_SIZE + 1)/2) | 0;
 
-        for (let y = 0; y < loopy; ++ y) {
+        for (let y = -loopy; y < loopy; ++ y) {
 
-            canvas.fillRect(0, -6 + y*32, canvas.width, 1);
+            canvas.fillRect(0, canvas.height/2 - y*GRID_SIZE, canvas.width, 1);
         }
 
-        for (let x = 0; x < loopx; ++ x) {
+        for (let x = -loopx; x < loopx; ++ x) {
 
-            canvas.fillRect(4 + x*32, 0, 1, canvas.height);
+            canvas.fillRect(canvas.width/2 - x*GRID_SIZE, 0, 1, canvas.height);
         }
     }
 
@@ -125,11 +152,21 @@ export class Game implements Scene {
 
         this.states.push(new PuzzleState(undefined, this.baseMap));
         this.activeState = this.states[0];
+        
+        this.objects.length = 0;
+        this.parseInitialObject();
+
     }
 
 
     public update(event : ProgramEvent) : void {
-        
+
+        const MOVE_SPEED : number = 1.0/8.0;
+
+        for (let o of this.objects) {
+
+            o.update(this.activeState, MOVE_SPEED, event);
+        }
     }
 
 
@@ -142,9 +179,16 @@ export class Game implements Scene {
         canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 16, 16);
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
+
         this.drawFrame(canvas);
         this.drawBottomLayer(canvas);
         drawWallMap(canvas, this.wallMap, this.shadowMap, this.baseMap.width, this.baseMap.height);
+
+        for (let o of this.objects) {
+
+            o.draw(canvas);
+        }
+
         canvas.moveTo();
     }
 

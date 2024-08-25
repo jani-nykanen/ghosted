@@ -7,10 +7,10 @@
 
 export const enum Action {
 
-    Up = 0,
-    Right = 1,
-    Down = 2,
-    Left = 3,
+    Right = 0,
+    Up = 1,
+    Left = 2,
+    Down = 3,
 
     Choose = 4,
     Pause = 5,

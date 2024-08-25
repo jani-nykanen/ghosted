@@ -211,7 +211,7 @@ export const drawWallMap = (canvas : Canvas, wallMap : number[], shadowMap : num
                 const sy : number = (shadowId/4) | 0;
 
                 canvas.setAlpha(0.25);
-                canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, x*8, y*8, 32 + sx*8, 32 + sy*8, 8, 8);
+                canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, x*8, y*8, sx*8, 32 + sy*8, 8, 8);
                 canvas.setAlpha();
             }
 

@@ -52,4 +52,28 @@ export class PuzzleState {
             target.layers[1][i] = this.layers[1][i];
         }
     }
+
+
+    public iterate(layer : number, func : (tileID : number, x : number, y : number) => void) : void {
+
+        if (layer < 0 || layer >= this.layers.length) {
+
+            return;
+        }
+
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                func(this.layers[layer][y*this.width + x], x, y);
+            }
+        }
+    }
+
+
+    public isSolid(x : number, y : number) : boolean {
+
+        // TODO: All the other missing checks
+        return this.getTile(0, x, y) == 1;
+    }
 }

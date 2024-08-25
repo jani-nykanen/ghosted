@@ -26,7 +26,7 @@ const onloadEvent = (event : ProgramEvent) : void => {
 
     event.addAction(Action.Left, ["ArrowLeft", "KeyA"]);
     event.addAction(Action.Right, ["ArrowRight", "KeyD"]);
-    event.addAction(Action.Undo, ["ArrowUp", "KeyW"]);
+    event.addAction(Action.Up, ["ArrowUp", "KeyW"]);
     event.addAction(Action.Down, ["ArrowDown", "KeyS"]);
     event.addAction(Action.Choose, ["Space", "Enter"]);
     event.addAction(Action.Pause, ["Escape", "Enter"]);

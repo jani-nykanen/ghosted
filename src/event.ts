@@ -1,15 +1,14 @@
 import { Canvas, Bitmap } from "./canvas.js";
 import { Ramp, Sample } from "./sample.js";
 import { Scene } from "./scene.js";
-import { Vector } from "./vector.js";
 
 
 export const enum InputState {
 
     Up = 0,
     Down = 1,
-    Pressed = 2,
-    Released = 3,
+    Released = 2,
+    Pressed = 3,
 
     DownOrPressed = 1
 };

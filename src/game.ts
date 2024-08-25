@@ -31,6 +31,25 @@ export class Game implements Scene {
     }
 
 
+    private drawBackgroundGrid(canvas : Canvas) : void {
+
+        canvas.setColor("#4992ff");
+
+        const loopx : number = canvas.width/32 + 1;
+        const loopy : number = canvas.height/32 + 1
+
+        for (let y = 0; y < loopy; ++ y) {
+
+            canvas.fillRect(0, -6 + y*32, canvas.width, 1);
+        }
+
+        for (let x = 0; x < loopx; ++ x) {
+
+            canvas.fillRect(4 + x*32, 0, 1, canvas.height);
+        }
+    }
+
+
     private drawFrame(canvas : Canvas) : void {
 
         // Horizontal
@@ -43,11 +62,12 @@ export class Game implements Scene {
 
                 
                 canvas.drawBitmap(BitmapAsset.GameArt, (Number(x == this.width*2) | Number(i*2)) as Flip, 
-                    x*8 + Number(x < 0), -7 + i*(this.height*16 + 6), corner ? 1 : 8, 48, 8 - Number(corner), 8);
+                    x*8 + Number(x < 0), -7 + i*(this.height*16 + 6), 
+                    corner ? 49 : 56, 0, 8 - Number(corner), 8);
             }
             // Bottom part
             canvas.drawBitmap(BitmapAsset.GameArt, Number(x == this.width*2) as Flip, 
-                x*8, this.height*16 + 6, corner ? 0 : 8, 56, 8, 8);
+                x*8, this.height*16 + 6, corner ? 48 : 56, 8, 8, 8);
         }
 
         // Vertical
@@ -56,7 +76,8 @@ export class Game implements Scene {
             for (let i = 0; i < 2; ++ i) {
 
                 canvas.drawBitmap(BitmapAsset.GameArt, (i*Flip.Horizontal) as Flip, 
-                    -7 + i*(this.width*16 + 6), y*8, 8, 48, 8, 8, 4, 4, Math.PI/2);
+                    -7 + i*(this.width*16 + 6), y*8, 
+                    56, 0, 8, 8, 4, 4, Math.PI/2);
             }
         }
     }
@@ -66,7 +87,6 @@ export class Game implements Scene {
 
         canvas.fillRect(8, 8, (this.width - 1)*16, (this.height - 1)*16, "#000000");
 
-        // Overlaying layer
         for (let y = 1; y < this.height - 1; ++ y) {
 
             for (let x = 1; x < this.width - 1; ++ x) {
@@ -84,16 +104,6 @@ export class Game implements Scene {
                 canvas.fillRect(dx, dy, 16, 16, x % 2 == y % 2 ? "#ffdb92" : "#dbb66d");
 
                 switch (tileID) {
-
-                // Hole
-                case 3:
-                    canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, 16, 32, 16, 16);
-                    break;
-
-                // Cross on the floor
-                case 4:
-                    canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx + 4, dy + 4, 0, 32, 8, 8);
-                    break;
 
                 default:
                     break;
@@ -126,6 +136,8 @@ export class Game implements Scene {
     public redraw(canvas : Canvas) : void {
         
         canvas.clear("#006db6");
+        this.drawBackgroundGrid(canvas);
+
         canvas.drawText(BitmapAsset.FontWhite, "HELLO WORLD!", 2, 2, -1);
         canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 16, 16);
 

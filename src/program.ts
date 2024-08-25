@@ -67,7 +67,7 @@ export class Program {
                 // this.transition.update(this.event);
             }
 
-            if (!this.initialized) {
+            if (loaded && !this.initialized) {
                 
                 if (this.event.anyPressed) {
 

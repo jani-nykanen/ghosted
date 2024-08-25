@@ -17,9 +17,8 @@ const computeNeighborhood = (dx : number, dy : number, tilemap : Tilemap) : bool
 }
 
 
-const computeTile = (target : number[], x : number, y : number, tilemap : Tilemap) : void => {
-
-    const neighborhood : boolean[] = computeNeighborhood(x, y, tilemap);
+const computeTileWall = (target : number[], neighborhood : boolean[], 
+    x : number, y : number, tilemap : Tilemap) : void => {
 
     //
     // TODO: If running out of space, use lookup tables instead.
@@ -35,12 +34,14 @@ const computeTile = (target : number[], x : number, y : number, tilemap : Tilema
 
 			target[index] = 4;
 
-		} else if (neighborhood[3]) {
+		} 
+        else if (neighborhood[3]) {
 
 			target[index] = 3;
 		}
 
-	} else if (!neighborhood[0]) {
+	} 
+    else if (!neighborhood[0]) {
 
 		target[index] = 5;
 	}
@@ -54,12 +55,14 @@ const computeTile = (target : number[], x : number, y : number, tilemap : Tilema
 
 			target[index] = 10;
 
-		} else if (neighborhood[5]) {
+		} 
+        else if (neighborhood[5]) {
 
 			target[index] = 3;
 		}
 
-	} else if (!neighborhood[2]) {
+	} 
+    else if (!neighborhood[2]) {
 
 		target[index] = 6;
 	}
@@ -74,12 +77,14 @@ const computeTile = (target : number[], x : number, y : number, tilemap : Tilema
 
 			target[index] = 4;
 
-		} else if (neighborhood[3]) {
+		} 
+        else if (neighborhood[3]) {
 
 			target[index] = 9;
 		}
 
-	} else if (!neighborhood[6]) {
+	} 
+    else if (!neighborhood[6]) {
 
 		target[index] = 11;
 	}
@@ -93,37 +98,103 @@ const computeTile = (target : number[], x : number, y : number, tilemap : Tilema
  
             target[index] = 10;
  
-         } else if (neighborhood[5]) {
+         } 
+         else if (neighborhood[5]) {
  
             target[index] = 9;
          }
  
-     } else if (!neighborhood[8]) {
+     } 
+     else if (!neighborhood[8]) {
  
          target[index] = 12;
      }
+     
 }
 
 
-export const generateWallMap = (tilemap : Tilemap) : number[] => {
+const computeTileShadow = (target : number[], neighborhood : boolean[],
+    x : number, y : number, tilemap : Tilemap) : void => {
 
-    const out : number[] = (new Array<number> (tilemap.width*tilemap.height*4)).fill(-1);
+    const index : number = y*tilemap.width*4 + x*2;
+
+    // Corner
+    if (neighborhood[0]) {
+
+        target[index] = 2;
+        if (neighborhood[1] && neighborhood[3]) {
+
+			target[index] = 1;
+
+		} 
+        else if (!neighborhood[1] && !neighborhood[3]) {
+
+			target[index] = 6;
+
+		} 
+        else if (!neighborhood[1]) {
+
+			target[index] = 7;
+		}
+    }
+    else {
+
+        if (neighborhood[1] && neighborhood[3]) {
+
+			target[index] = 1;
+
+		} 
+        else if (!neighborhood[1] && neighborhood[3]) {
+
+			target[index] = 3;
+
+		} 
+        else if (!neighborhood[3] && neighborhood[1]) {
+
+			target[index] = 4;
+		}
+    }
+
+    // Top
+	if (neighborhood[1]) {
+
+		target[index + 1] = 2;
+	}
+
+	// Left
+	if (neighborhood[3]) {
+
+		target[index + tilemap.width*2] = 7;
+	}
+}
+
+
+export const generateWallMap = (tilemap : Tilemap) : [number[], number[]] => {
+
+    const walls : number[] = (new Array<number> (tilemap.width*tilemap.height*4)).fill(-1);
+    const shadows : number[] = (new Array<number> (tilemap.width*tilemap.height*4)).fill(0);
 
     for (let y = 0; y < tilemap.height; ++ y) {
 
         for (let x = 0; x < tilemap.width; ++ x) {
 
-            if (tilemap.getTile(x, y) != 1)
-                continue;
+            const neighborhood : boolean[] = computeNeighborhood(x, y, tilemap);
 
-            computeTile(out, x, y, tilemap);
+            if (tilemap.getTile(x, y) != 1) {
+
+                computeTileShadow(shadows, neighborhood, x, y, tilemap);
+                continue;
+            }
+            computeTileWall(walls, neighborhood, x, y, tilemap);  
         }
     }
-    return out;
+
+    return [walls, shadows];
 }
 
 
-export const drawWallMap = (canvas : Canvas, wallMap : number[], width : number, height : number) : void => {
+export const drawWallMap = (canvas : Canvas, wallMap : number[], shadowMap : number[], 
+    width : number, height : number) : void => {
 
     canvas.setColor("#dbdbdb");
 
@@ -132,6 +203,18 @@ export const drawWallMap = (canvas : Canvas, wallMap : number[], width : number,
         for (let x = 0; x < width*2; ++ x) {
 
             const tileID : number = wallMap[y*width*2 + x] - 1;
+            const shadowId : number = shadowMap[y*width*2 + x] - 1;
+
+            if (shadowId >= 0) {
+                    
+                const sx : number = shadowId % 4;
+                const sy : number = (shadowId/4) | 0;
+
+                canvas.setAlpha(0.25);
+                canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, x*8, y*8, 32 + sx*8, 32 + sy*8, 8, 8);
+                canvas.setAlpha();
+            }
+
             if (tileID == -2) {
 
                 continue;

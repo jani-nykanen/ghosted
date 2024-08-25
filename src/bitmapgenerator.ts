@@ -137,3 +137,13 @@ export const createBigText = (text : string, font : string,
     return canvas;
 }
 
+
+
+export const createCustomBitmap = (width : number, height : number,
+    func : (ctx : CanvasRenderingContext2D, width? : number, height? : number) => void) : Bitmap => {
+
+    const canvas : HTMLCanvasElement = createEmptyCanvas(width, height);
+    func(canvas.getContext("2d")!, width, height);
+
+    return canvas;
+}

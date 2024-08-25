@@ -8,8 +8,8 @@ import { PuzzleState } from "./puzzlestate.js";
 export const enum GameObjectType {
 
     Unknown = 0,
-    Player = 1,
-    Rock = 2
+    Player = 2,
+    Rock = 3
 }
 
 
@@ -36,9 +36,11 @@ export class GameObject {
 
     private type : GameObjectType;
 
-    private pos : Vector;
+    // There two are public to save bytes
+    public pos : Vector;
+    public renderPos : Vector;
     private target : Vector;
-    private renderPos : Vector;
+
     private direction : Direction = Direction.None;
 
     private active : boolean = true;
@@ -61,43 +63,19 @@ export class GameObject {
             return false;
         }
 
+        activeState.setTile(1, this.pos.x, this.pos.y, 0);
+        // activeState.setTile(1, x, y, this.type);
+
         this.moveTimer = 0.0;
         this.moving = true;
 
         this.target = new Vector(x, y);
+        
         return true;
     }
 
 
-    private control(activeState : PuzzleState, event : ProgramEvent) : void {
-
-        if (this.moving) {
-
-            return;
-        }
-
-        let direction : Direction = Direction.None;
-        for (let i = 0; i < 4; ++ i) {
-
-            if ((event.getAction(i) & InputState.DownOrPressed) != 0) {
-
-                direction = (i + 1) as Direction;
-                break;
-            }
-        }
-
-        if (direction != Direction.None) {
-
-            // Change the direction even if cannot move
-            this.direction = direction;
-
-            const dir : Vector = directionToVector(direction);
-            this.moveTo(activeState, this.pos.x + dir.x, this.pos.y + dir.y);
-        }
-    }
-
-
-    private move(moveSpeed : number, event : ProgramEvent) : void {
+    private move(activeState : PuzzleState, moveSpeed : number, event : ProgramEvent) : void {
 
         if (!this.moving) 
             return;
@@ -107,6 +85,8 @@ export class GameObject {
             this.moveTimer = 0.0;
             this.moving = false;
             this.pos = this.target.clone();
+
+            activeState.setTile(1, this.pos.x, this.pos.y, this.type);
         }
         this.renderPos.x = ((1.0 - this.moveTimer)*this.pos.x + this.moveTimer*this.target.x)*16;
         this.renderPos.y = ((1.0 - this.moveTimer)*this.pos.y + this.moveTimer*this.target.y)*16;
@@ -152,14 +132,44 @@ export class GameObject {
     }
 
 
-    public update(activeState : PuzzleState, moveSpeed : number, event : ProgramEvent) : void {
+    public control(activeState : PuzzleState, event : ProgramEvent) : boolean {
 
-        if (this.type == GameObjectType.Player) {
+        if (this.moving) {
 
-            this.control(activeState, event);
+            return false;
         }
 
-        this.move(moveSpeed, event);
+        const requirePushing : boolean = this.type != GameObjectType.Player;
+
+        let direction : Direction = Direction.None;
+        for (let i = 0; i < 4; ++ i) {
+
+            if ((event.getAction(i) & InputState.DownOrPressed) != 0) {
+
+                direction = (i + 1) as Direction;
+                break;
+            }
+        }
+
+        const dir : Vector = directionToVector(direction);
+        if (requirePushing && 
+            activeState.getTile(1, this.pos.x - dir.x, this.pos.y - dir.y) != GameObjectType.Player) {
+
+            return false;
+        }
+
+        if (direction != Direction.None) {
+
+            // Change the direction even if cannot move
+            this.direction = direction;
+            return this.moveTo(activeState, this.pos.x + dir.x, this.pos.y + dir.y);
+        }
+    }
+
+
+    public update(activeState : PuzzleState, moveSpeed : number, event : ProgramEvent) : void {
+
+        this.move(activeState, moveSpeed, event);
     }
 
 
@@ -173,11 +183,22 @@ export class GameObject {
         switch (this.type) {
 
         case GameObjectType.Player:
+
             this.drawPlayer(canvas);
+            break;
+
+        case GameObjectType.Rock:
+
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 
+                this.renderPos.x, this.renderPos.y - 1, 
+                32, 32, 16, 16);
             break;
 
         default:
             break;
         }
     }
+
+
+    public isAbove = (other : GameObject) : boolean => this.pos.y > other.pos.y;
 }

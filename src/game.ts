@@ -9,7 +9,7 @@ import { PuzzleState } from "./puzzlestate.js";
 import { GameObject, GameObjectType } from "./gameobject.js";
 
 
-const FLOOR_TILES : number[] = [0, 3, 4];
+const FLOOR_TILES : number[] = [0];
 
 
 export class Game implements Scene {
@@ -42,10 +42,11 @@ export class Game implements Scene {
 
             switch (id) {
 
-            // Player
+            // Player & rock
             case 2:
+            case 3:
 
-                this.objects.push(new GameObject(GameObjectType.Player, x, y));
+                this.objects.push(new GameObject(id as GameObjectType, x, y));
                 break;
 
             default:
@@ -163,6 +164,17 @@ export class Game implements Scene {
 
         const MOVE_SPEED : number = 1.0/16.0;
 
+        let anyMoved : boolean = false;
+        do {
+
+            anyMoved = false;
+            for (let o of this.objects) {
+
+                anyMoved = o.control(this.activeState, event) || anyMoved;
+            }
+        }
+        while (anyMoved);
+
         for (let o of this.objects) {
 
             o.update(this.activeState, MOVE_SPEED, event);
@@ -184,6 +196,7 @@ export class Game implements Scene {
         this.drawBottomLayer(canvas);
         drawWallMap(canvas, this.wallMap, this.shadowMap, this.baseMap.width, this.baseMap.height);
 
+        this.objects.sort((a : GameObject, b : GameObject) => a.renderPos.y - b.renderPos.y);
         for (let o of this.objects) {
 
             o.draw(canvas);

@@ -1,4 +1,4 @@
-import { applyPalette, createBigText, cropBitmap } from "./bitmapgenerator.js";
+import { applyPalette, createBigText, createCustomBitmap, cropBitmap } from "./bitmapgenerator.js";
 import { Bitmap, Canvas } from "./canvas.js";
 import { Ramp } from "./sample.js";
 import { ProgramEvent } from "./event.js";
@@ -35,17 +35,19 @@ const PALETTE_TABLE : number[] = [
     0b011001000, // 9 Darkest brown
     0b100010000, // A Darker brown
     0b101011000, // B Brown
+    0b111101010, // C Yellowish
+    
 ];
 
 
 const GAME_ART_PALETTE_TABLE : string[] = [
 
-    "1452", "1453", "1452", "1452" ,"1452", "1453", "1AB7", "1AB7",
+    "1452", "1453", "1452", "1452" ,"1452", "1453", "1ABC", "1ABC",
     "1452", "1453", "1452", "1453" ,"1452", "1453", "10A9", "10A9",
     "1067", "1067", "1067", "1067", "1067", "1067", "1067", "1067",
     "1067", "1067", "1067", "1067", "1067", "1067", "1067", "1067",
-    "1000", "1000", "1000", "1000", "0000", "0000", "0000", "0000",
-    "1000", "1000", "1000", "1000", "0000", "0000", "0000", "0000",
+    "1000", "1000", "1000", "1000", "10BC", "10B9", "0000", "0000",
+    "1000", "1000", "1000", "1000", "10BC", "10B9", "0000", "0000",
 ];
 
 
@@ -76,10 +78,20 @@ const generatePaletteLookup = () : PaletteLookup => {
 
 const generateGameArt = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
 
+    const bmpGameArtBase : Bitmap = applyPalette(event.getBitmap(BitmapAsset.RawGameArt), 
+        GAME_ART_PALETTE_TABLE, PALETTE_TABLE, rgb333);
+
     event.addBitmap(BitmapAsset.GameArt, 
-        applyPalette(event.getBitmap(BitmapAsset.RawGameArt), 
-            GAME_ART_PALETTE_TABLE, PALETTE_TABLE, rgb333)
-        );
+        createCustomBitmap(bmpGameArtBase!.width, bmpGameArtBase!.height,
+            (ctx : CanvasRenderingContext2D) : void => {
+
+                // Fill rock
+                ctx.fillStyle = "#924900";
+                ctx.fillRect(37, 38, 6, 9);
+
+                // Base
+                ctx.drawImage(bmpGameArtBase, 0, 0);
+            }));
 }
 
 

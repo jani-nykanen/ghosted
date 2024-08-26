@@ -34,16 +34,16 @@ export class GameObject {
     private moveTimer : number = 0;
     private moving : boolean = false;
 
-    private type : GameObjectType;
-
-    // There two are public to save bytes
-    public pos : Vector;
-    public renderPos : Vector;
     private target : Vector;
 
     private direction : Direction = Direction.None;
 
     private active : boolean = true;
+
+    // These are public to save bytes
+    public type : GameObjectType;
+    public pos : Vector;
+    public renderPos : Vector;
 
 
     constructor(type : GameObjectType, x : number, y : number) {
@@ -86,7 +86,7 @@ export class GameObject {
             this.moving = false;
             this.pos = this.target.clone();
 
-            activeState.setTile(1, this.pos.x, this.pos.y, this.type);
+            activeState.setTile(1, this.pos.x, this.pos.y, this.type, this.direction);
         }
         this.renderPos.x = ((1.0 - this.moveTimer)*this.pos.x + this.moveTimer*this.target.x)*16;
         this.renderPos.y = ((1.0 - this.moveTimer)*this.pos.y + this.moveTimer*this.target.y)*16;
@@ -200,5 +200,31 @@ export class GameObject {
     }
 
 
+    public stopMoving() : void {
+
+        if (this.moving) {
+
+            return;
+        }
+
+        this.moving = false;
+        this.target = this.pos.clone();
+        this.renderPos.x = this.pos.x*16;
+        this.renderPos.y = this.pos.y*16;
+    }
+
+
+    public setPosition(x : number, y : number, direction : Direction = Direction.None) : void {
+
+        this.pos = new Vector(x, y);
+        this.target = this.pos.clone();
+        this.direction = direction;
+
+        this.renderPos.x = this.pos.x*16;
+        this.renderPos.y = this.pos.y*16;
+    }
+
+
     public isAbove = (other : GameObject) : boolean => this.pos.y > other.pos.y;
+    public isMoving = () : boolean => this.moving;
 }

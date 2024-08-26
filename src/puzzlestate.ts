@@ -14,33 +14,36 @@ export class PuzzleState {
     public readonly height : number;
 
 
-    constructor(cloneableState : PuzzleState | undefined, baseMap : Tilemap)  {
+    constructor(cloneableState : PuzzleState | undefined, baseMap? : Tilemap)  {
 
         this.layers = new Array<number[]> (2);
 
-        this.width = baseMap.width;
-        this.height = baseMap.height;
-
         if (cloneableState !== undefined) {
+
+            this.width = cloneableState.width;
+            this.height = cloneableState.height;
 
             this.layers[0] = Array.from(cloneableState.layers[0]);
             this.layers[1] = Array.from(cloneableState.layers[1]);
             return;
         }
 
+        this.width = baseMap.width;
+        this.height = baseMap.height;
+
         this.layers[0] = baseMap.filterTiles(BOTTOM_LAYER_TILES);
         this.layers[1] = baseMap.filterTiles(TOP_LAYER_TILES);
     }
 
 
-    public getTile(layer : number, x : number, y : number, def : number = 0) : number {
+    public getTile(layer : number, x : number, y : number, def : number = 0, mask : number = 31) : number {
     
         if (layer < 0 || layer >= this.layers.length ||
             x < 0 || y < 0 || x >= this.width || y >= this.height) {
 
             return def;
         }
-        return this.layers[layer][y*this.width + x];
+        return this.layers[layer][y*this.width + x] & mask;
     }
 
 
@@ -78,13 +81,13 @@ export class PuzzleState {
     }
 
 
-    public setTile(layer : number, x : number, y : number, newValue : number) : void {
+    public setTile(layer : number, x : number, y : number, newValue : number, mask : number = 0) : void {
 
         if (layer < 0 || layer >= this.layers.length ||
             x < 0 || y < 0 || x >= this.width || y >= this.height) {
 
             return;
         }
-        this.layers[layer][y*this.width + x] = newValue;
+        this.layers[layer][y*this.width + x] = (newValue & 31) | (mask << 5);
     }
 }

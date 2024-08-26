@@ -1,12 +1,12 @@
 import { Canvas, Flip } from "./canvas.js";
-import { ProgramEvent } from "./event.js";
-import { BitmapAsset } from "./mnemonics.js";
+import { InputState, ProgramEvent } from "./event.js";
+import { Action, BitmapAsset } from "./mnemonics.js";
 import { Scene, SceneParameter } from "./scene.js";
 import { Tilemap } from "./tilemap.js";
 import { LEVEL_DATA } from "./leveldata.js";
 import { drawWallMap, generateWallMap } from "./wallmap.js";
 import { PuzzleState } from "./puzzlestate.js";
-import { GameObject, GameObjectType } from "./gameobject.js";
+import { Direction, GameObject, GameObjectType } from "./gameobject.js";
 
 
 const FLOOR_TILES : number[] = [0];
@@ -19,18 +19,19 @@ export class Game implements Scene {
     private wallMap : number[] | undefined = undefined;
     private shadowMap : number[] | undefined = undefined;
 
-    private states : PuzzleState[];
+    private stateBuffer : PuzzleState[];
     private activeState : PuzzleState | undefined = undefined;
 
     private width : number = 0;
     private height : number = 0;
 
     private objects : GameObject[];
+    private isMoving : boolean = false;
 
 
     constructor() {
 
-        this.states = new Array<PuzzleState> ();
+        this.stateBuffer = new Array<PuzzleState> ();
 
         this.objects = new Array<GameObject> ();
     }
@@ -54,6 +55,61 @@ export class Game implements Scene {
             }
 
         });
+    }
+
+
+    private resetState() : void {
+
+        for (let o of this.objects) {
+
+            o.stopMoving();
+        }
+
+        const resetIndices : boolean[] = (new Array<boolean> (this.objects.length)).fill(false);
+
+        // Reset objects to the their corresponding locations
+        this.activeState.iterate(1, (tileID : number, x : number, y : number) : void => {
+
+            if (tileID <= 1) {
+
+                return;
+            }
+
+            for (let i = 0; i < this.objects.length; ++ i) {
+
+                const o : GameObject = this.objects[i];
+                if (resetIndices[i] || (tileID & 31) != o.type) {
+
+                    continue;
+                }
+                resetIndices[i] = true;
+                o.setPosition(x, y, (tileID >> 5) as Direction);
+                break;
+            }
+        });
+    }
+
+
+    private undo(event : ProgramEvent) : void {
+
+        if (this.stateBuffer.length < 2) {
+
+            return;
+        }
+
+        this.stateBuffer[this.stateBuffer.length - 2].cloneTo(this.activeState);
+        this.stateBuffer.pop();
+
+        this.resetState();
+    }
+
+
+    private reset(event : ProgramEvent) : void {
+
+        this.activeState = new PuzzleState(undefined, this.baseMap);
+        this.resetState();
+
+        this.stateBuffer.push(new PuzzleState(this.activeState));
     }
 
 
@@ -151,18 +207,29 @@ export class Game implements Scene {
         this.width = this.baseMap.width;
         this.height = this.baseMap.height;
 
-        this.states.push(new PuzzleState(undefined, this.baseMap));
-        this.activeState = this.states[0];
+        this.stateBuffer.push(new PuzzleState(undefined, this.baseMap));
+        this.activeState = new PuzzleState(this.stateBuffer[0]);
         
         this.objects.length = 0;
         this.parseInitialObject();
-
     }
 
 
     public update(event : ProgramEvent) : void {
 
+        const MAX_BUFFER_SIZE : number = 64;
         const MOVE_SPEED : number = 1.0/16.0;
+
+        if (event.getAction(Action.Undo) == InputState.Pressed) {
+
+            this.undo(event);
+            return;
+        }
+        if (event.getAction(Action.Restart) == InputState.Pressed) {
+
+            this.reset(event);
+            return;
+        }
 
         let anyMoved : boolean = false;
         do {
@@ -175,9 +242,24 @@ export class Game implements Scene {
         }
         while (anyMoved);
 
+        const wasMoving : boolean = this.isMoving;
+
+        this.isMoving = false;
         for (let o of this.objects) {
 
             o.update(this.activeState, MOVE_SPEED, event);
+            this.isMoving = o.isMoving() || this.isMoving;
+        }
+
+        if (wasMoving && !this.isMoving) {
+
+            console.log("Turn played!");
+
+            this.stateBuffer.push(new PuzzleState(this.activeState));
+            if (this.stateBuffer.length >= MAX_BUFFER_SIZE) {
+
+                this.stateBuffer.shift();
+            }
         }
     }
 

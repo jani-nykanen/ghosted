@@ -1,7 +1,7 @@
 import { Tilemap } from "./tilemap.js";
 
 
-const BOTTOM_LAYER_TILES : number[] = [1];
+const BOTTOM_LAYER_TILES : number[] = [1, 4];
 const TOP_LAYER_TILES : number[] = [2, 3];
 
 
@@ -74,10 +74,13 @@ export class PuzzleState {
     }
 
 
-    public isSolid(x : number, y : number) : boolean {
+    public isSolid(x : number, y : number, isRock : boolean) : boolean {
 
         // TODO: All the other missing checks
-        return this.getTile(0, x, y) == 1 ||  this.getTile(1, x, y) != 0;
+        // TODO 2: Use a table
+        return this.getTile(0, x, y) == 1 ||  
+            this.getTile(1, x, y) != 0 ||
+            (!isRock && this.getTile(0, x, y) == 4)
     }
 
 

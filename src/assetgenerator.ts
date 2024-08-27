@@ -29,7 +29,7 @@ const PALETTE_TABLE : number[] = [
     0b111110100, // 7 Light beige
 
     // Hole
-    0b100011000, // 8 Yellowish brownish thing
+    0b011010000, // 8 Dark yellowish brownish thing
 
     // Frame
     0b011001000, // 9 Darkest brown
@@ -42,12 +42,12 @@ const PALETTE_TABLE : number[] = [
 
 const GAME_ART_PALETTE_TABLE : string[] = [
 
-    "1452", "1453", "1452", "1452" ,"1452", "1453", "1ABC", "1ABC",
-    "1452", "1453", "1452", "1453" ,"1452", "1453", "10A9", "10A9",
+    "1042", "1043", "1452", "1452" ,"1452", "1453", "10BC", "10BC",
+    "1042", "1043", "1452", "1453" ,"1452", "1453", "10A9", "10A9",
     "1067", "1067", "1067", "1067", "1067", "1067", "1067", "1067",
     "1067", "1067", "1067", "1067", "1067", "1067", "1067", "1067",
-    "1000", "1000", "1000", "1000", "10BC", "10B9", "0000", "0000",
-    "1000", "1000", "1000", "1000", "10BC", "10B9", "0000", "0000",
+    "1000", "1000", "1000", "1000", "10BC", "10B9", "1080", "1080",
+    "1000", "1000", "1000", "1000", "10BC", "10B9", "1080", "1080",
 ];
 
 
@@ -84,6 +84,10 @@ const generateGameArt = (rgb333 : PaletteLookup, event : ProgramEvent) : void =>
     event.addBitmap(BitmapAsset.GameArt, 
         createCustomBitmap(bmpGameArtBase!.width, bmpGameArtBase!.height,
             (ctx : CanvasRenderingContext2D) : void => {
+
+                // Fill wall
+                ctx.fillStyle = "#dbdbdb";
+                ctx.fillRect(2, 2, 12, 12);
 
                 // Fill rock
                 ctx.fillStyle = "#924900";

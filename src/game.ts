@@ -9,9 +9,6 @@ import { PuzzleState } from "./puzzlestate.js";
 import { Direction, GameObject, GameObjectType } from "./gameobject.js";
 
 
-const FLOOR_TILES : number[] = [0];
-
-
 export class Game implements Scene {
 
 
@@ -56,6 +53,15 @@ export class Game implements Scene {
 
         });
     }
+
+
+    private checkUnderlyingTiles(event : ProgramEvent) : void {
+
+        for (let o of this.objects) {
+
+            o.checkUnderlyingTiles(this.activeState, event);
+        }
+    } 
 
 
     private resetState() : void {
@@ -136,6 +142,9 @@ export class Game implements Scene {
 
     private drawFrame(canvas : Canvas) : void {
 
+        // Background color
+        canvas.fillRect(-2, -2, this.width*16 + 4, this.height*16 + 4, "#924900");
+
         // Horizontal
         for (let x = -1; x < this.width*2 + 1; ++ x) {
 
@@ -143,7 +152,6 @@ export class Game implements Scene {
 
             // Frame bars
             for (let i = 0; i < 2; ++ i) {
-
                 
                 canvas.drawBitmap(BitmapAsset.GameArt, (Number(x == this.width*2) | Number(i*2)) as Flip, 
                     x*8 + Number(x < 0), -7 + i*(this.height*16 + 6), 
@@ -177,17 +185,17 @@ export class Game implements Scene {
 
                 const tileID : number = this.activeState.getTile(0, x, y);
 
-                if (!FLOOR_TILES.includes(tileID)) {
-
-                    continue;
-                }
-
                 const dx : number = x*16;
                 const dy : number = y*16;
 
                 canvas.fillRect(dx, dy, 16, 16, x % 2 == y % 2 ? "#ffdb92" : "#dbb66d");
 
                 switch (tileID) {
+
+                // Hole
+                case 4:
+                    canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, 48, 32, 16, 16);
+                    break;
 
                 default:
                     break;
@@ -253,8 +261,9 @@ export class Game implements Scene {
 
         if (wasMoving && !this.isMoving) {
 
-            console.log("Turn played!");
+            // console.log("Turn played!");
 
+            this.checkUnderlyingTiles(event);
             this.stateBuffer.push(new PuzzleState(this.activeState));
             if (this.stateBuffer.length >= MAX_BUFFER_SIZE) {
 

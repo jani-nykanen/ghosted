@@ -58,7 +58,7 @@ export class GameObject {
 
     private moveTo(activeState : PuzzleState, x : number, y : number) : boolean {
 
-        if (activeState.isSolid(x, y)) {
+        if (activeState.isSolid(x, y, this.type == GameObjectType.Rock)) {
 
             return false;
         }
@@ -134,7 +134,7 @@ export class GameObject {
 
     public control(activeState : PuzzleState, event : ProgramEvent) : boolean {
 
-        if (this.moving) {
+        if (!this.active || this.moving) {
 
             return false;
         }
@@ -169,6 +169,11 @@ export class GameObject {
 
     public update(activeState : PuzzleState, moveSpeed : number, event : ProgramEvent) : void {
 
+        if (!this.active) {
+
+            return;
+        }
+
         this.move(activeState, moveSpeed, event);
     }
 
@@ -202,15 +207,14 @@ export class GameObject {
 
     public stopMoving() : void {
 
-        if (this.moving) {
-
-            return;
-        }
-
         this.moving = false;
+        this.moveTimer = 0;
+
         this.target = this.pos.clone();
         this.renderPos.x = this.pos.x*16;
         this.renderPos.y = this.pos.y*16;
+
+        this.active = false;
     }
 
 
@@ -222,6 +226,24 @@ export class GameObject {
 
         this.renderPos.x = this.pos.x*16;
         this.renderPos.y = this.pos.y*16;
+
+        this.active = true;
+    }
+
+
+    public checkUnderlyingTiles(activeScene : PuzzleState, event : ProgramEvent) : void {
+
+        const bottomTile : number = activeScene.getTile(0, this.pos.x, this.pos.y);
+
+        // Hole
+        if (this.type == GameObjectType.Rock && bottomTile == 4) {
+
+            this.active = false;
+            activeScene.setTile(0, this.pos.x, this.pos.y, 0);
+            activeScene.setTile(1, this.pos.x, this.pos.y, 0);
+
+            // TODO: Sound effect!
+        }
     }
 
 

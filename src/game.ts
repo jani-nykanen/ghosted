@@ -7,6 +7,18 @@ import { LEVEL_DATA } from "./leveldata.js";
 import { drawWallMap, generateWallMap } from "./wallmap.js";
 import { PuzzleState } from "./puzzlestate.js";
 import { Direction, GameObject, GameObjectType } from "./gameobject.js";
+import { Vector } from "./vector.js";
+
+
+export const enum EffectType {
+
+    None = 0,
+    SpreadingHole = 1, // what now
+    ShrinkingHole = 2,
+};
+
+
+export type EffectCallback = (type : EffectType, x : number, y : number) => void; 
 
 
 export class Game implements Scene {
@@ -24,6 +36,20 @@ export class Game implements Scene {
 
     private objects : GameObject[];
     private isMoving : boolean = false;
+
+    private effectType : EffectType = EffectType.None;
+    private effectTimer : number = 0.0;
+    private effectPos : Vector = new Vector(0, 0);
+
+
+    private readonly setEffect : EffectCallback = (type : EffectType, x : number, y : number) => {
+
+        this.effectPos.x = x;
+        this.effectPos.y = y;
+
+        this.effectType = type;
+        this.effectTimer = 1.0;
+    };
 
 
     constructor() {
@@ -44,7 +70,7 @@ export class Game implements Scene {
             case 2:
             case 3:
 
-                this.objects.push(new GameObject(id as GameObjectType, x, y));
+                this.objects.push(new GameObject(id as GameObjectType, x, y, this.setEffect));
                 break;
 
             default:
@@ -65,6 +91,8 @@ export class Game implements Scene {
 
 
     private resetState() : void {
+
+        this.effectTimer = 0.0;
 
         for (let o of this.objects) {
 
@@ -174,6 +202,12 @@ export class Game implements Scene {
         }
     }
 
+x
+    private drawFloorTile(canvas : Canvas, x : number, y : number) : void {
+
+        canvas.fillRect(x*16, y*16, 16, 16, x % 2 == y % 2 ? "#ffdb92" : "#dbb66d");
+    }
+
 
     private drawBottomLayer(canvas : Canvas) : void {
 
@@ -188,7 +222,7 @@ export class Game implements Scene {
                 const dx : number = x*16;
                 const dy : number = y*16;
 
-                canvas.fillRect(dx, dy, 16, 16, x % 2 == y % 2 ? "#ffdb92" : "#dbb66d");
+                this.drawFloorTile(canvas, x, y);
 
                 switch (tileID) {
 
@@ -197,10 +231,58 @@ export class Game implements Scene {
                     canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, 48, 32, 16, 16);
                     break;
 
+                // Cross
+                case 5:
+                    canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx + 4, dy + 4, 24, 40, 8, 8);
+                    break;
+
                 default:
                     break;
                 }
             }
+        }
+    }
+
+
+    private drawEffect(canvas : Canvas) : void {
+
+        const HOLE_SX : number[] = [24, 48, 56, 48];
+        const HOLE_SY : number[] = [40, 48, 48, 32];
+
+        if (this.effectTimer <= 0) {
+
+            return;
+        }
+
+        switch (this.effectType) {
+
+        case EffectType.SpreadingHole: {
+
+            const frame : number = Math.min(2, ((1.0 - this.effectTimer)*3) | 0);
+
+            this.drawFloorTile(canvas, this.effectPos.x, this.effectPos.y);
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 
+                this.effectPos.x*16 + 4,
+                this.effectPos.y*16 + 4,
+                HOLE_SX[frame], HOLE_SY[frame], 8, 8);
+            }
+            break;
+
+        
+        case EffectType.ShrinkingHole: {
+
+            const frame : number = Math.max(1, Math.ceil((this.effectTimer)*3));
+            const dim : number = frame == 3 ? 16 : 8;
+
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 
+                this.effectPos.x*16 + (16 - dim)/2,
+                this.effectPos.y*16 + (16 - dim)/2,
+                HOLE_SX[frame], HOLE_SY[frame], dim, dim);
+            }
+            break;
+
+        default:
+            break;
         }
     }
 
@@ -240,16 +322,18 @@ export class Game implements Scene {
         }
 
         let anyMoved : boolean = false;
-        do {
+        if (this.effectTimer <= 0.0) {
 
-            anyMoved = false;
-            for (let o of this.objects) {
+            do {
 
-                anyMoved = o.control(this.activeState, event) || anyMoved;
+                anyMoved = false;
+                for (let o of this.objects) {
+
+                    anyMoved = o.control(this.activeState, event) || anyMoved;
+                }
             }
+            while (anyMoved);
         }
-        while (anyMoved);
-
         const wasMoving : boolean = this.isMoving;
 
         this.isMoving = false;
@@ -270,6 +354,11 @@ export class Game implements Scene {
                 this.stateBuffer.shift();
             }
         }
+
+        if (this.effectTimer > 0) {
+
+            this.effectTimer -= MOVE_SPEED*event.tick;
+        }
     }
 
 
@@ -285,6 +374,7 @@ export class Game implements Scene {
 
         this.drawFrame(canvas);
         this.drawBottomLayer(canvas);
+        this.drawEffect(canvas);
         drawWallMap(canvas, this.wallMap, this.shadowMap, this.baseMap.width, this.baseMap.height);
 
         this.objects.sort((a : GameObject, b : GameObject) => a.renderPos.y - b.renderPos.y);

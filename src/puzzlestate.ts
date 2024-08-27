@@ -1,7 +1,7 @@
 import { Tilemap } from "./tilemap.js";
 
 
-const BOTTOM_LAYER_TILES : number[] = [1, 4];
+const BOTTOM_LAYER_TILES : number[] = [1, 4, 5];
 const TOP_LAYER_TILES : number[] = [2, 3];
 
 

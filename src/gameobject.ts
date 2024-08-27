@@ -3,6 +3,7 @@ import { Canvas, Flip } from "./canvas.js";
 import { BitmapAsset } from "./mnemonics.js";
 import { InputState, ProgramEvent } from "./event.js";
 import { PuzzleState } from "./puzzlestate.js";
+import { EffectCallback, EffectType } from "./game.js";
 
 
 export const enum GameObjectType {
@@ -39,6 +40,8 @@ export class GameObject {
     private direction : Direction = Direction.None;
 
     private active : boolean = true;
+    
+    private readonly effectCallback : EffectCallback;
 
     // These are public to save bytes
     public type : GameObjectType;
@@ -46,17 +49,42 @@ export class GameObject {
     public renderPos : Vector;
 
 
-    constructor(type : GameObjectType, x : number, y : number) {
+    constructor(type : GameObjectType, x : number, y : number, effectCallback : EffectCallback) {
 
         this.pos = new Vector(x, y);
         this.target = this.pos.clone();
         this.renderPos = new Vector(x*16, y*16);
 
         this.type = type;
+
+        this.effectCallback = effectCallback;
     }
 
 
-    private moveTo(activeState : PuzzleState, x : number, y : number) : boolean {
+    // This is called when the player leaves certain tiles
+    private precheckUnderlyingTiles(activeScene : PuzzleState, event : ProgramEvent) : void {
+
+        if (this.type != GameObjectType.Player) {
+
+            return;
+        }
+
+        const bottomTile : number = activeScene.getTile(0, this.pos.x, this.pos.y);
+
+        // Cross
+        if (bottomTile == 5) {
+
+            activeScene.setTile(0, this.pos.x, this.pos.y, 4);
+
+            this.effectCallback(EffectType.SpreadingHole, this.pos.x, this.pos.y);
+
+            // TODO: Sound effect!
+        }
+    }
+
+
+
+    private moveTo(activeState : PuzzleState, x : number, y : number, event : ProgramEvent) : boolean {
 
         if (activeState.isSolid(x, y, this.type == GameObjectType.Rock)) {
 
@@ -64,6 +92,7 @@ export class GameObject {
         }
 
         activeState.setTile(1, this.pos.x, this.pos.y, 0);
+        this.precheckUnderlyingTiles(activeState, event);
         // activeState.setTile(1, x, y, this.type);
 
         this.moveTimer = 0.0;
@@ -162,7 +191,7 @@ export class GameObject {
 
             // Change the direction even if cannot move
             this.direction = direction;
-            return this.moveTo(activeState, this.pos.x + dir.x, this.pos.y + dir.y);
+            return this.moveTo(activeState, this.pos.x + dir.x, this.pos.y + dir.y, event);
         }
     }
 
@@ -241,6 +270,8 @@ export class GameObject {
             this.active = false;
             activeScene.setTile(0, this.pos.x, this.pos.y, 0);
             activeScene.setTile(1, this.pos.x, this.pos.y, 0);
+
+            this.effectCallback(EffectType.ShrinkingHole, this.pos.x, this.pos.y);
 
             // TODO: Sound effect!
         }

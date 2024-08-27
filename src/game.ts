@@ -381,15 +381,25 @@ x
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
 
+
         this.drawFrame(canvas);
         this.drawBottomLayer(canvas);
         this.drawEffect(canvas);
         drawWallMap(canvas, this.wallMap, this.shadowMap, this.baseMap.width, this.baseMap.height);
 
         this.objects.sort((a : GameObject, b : GameObject) => a.renderPos.y - b.renderPos.y);
+
+        // Shadows
+        canvas.setAlpha(0.25);
         for (let o of this.objects) {
 
-            o.draw(canvas);
+            o.drawShadow(canvas);
+        }
+        canvas.setAlpha();
+        // Objects itself
+        for (let o of this.objects) {
+
+            o.draw(canvas, this.activeState);
         }
 
         canvas.moveTo();

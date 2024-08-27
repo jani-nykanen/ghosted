@@ -81,13 +81,13 @@ export class PuzzleState {
     }
 
 
-    public isSolid(x : number, y : number, isRock : boolean) : boolean {
+    public isSolid(x : number, y : number, ignoreSpecialTiles : boolean) : boolean {
 
         // TODO: All the other missing checks
         // TODO 2: Use a table
         return this.getTile(0, x, y) == 1 ||  
             this.getTile(1, x, y) != 0 ||
-            (!isRock && this.getTile(0, x, y) == 4)
+            (!ignoreSpecialTiles && this.getTile(0, x, y) == 4)
     }
 
 

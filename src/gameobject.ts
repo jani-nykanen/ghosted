@@ -34,13 +34,14 @@ export class GameObject {
 
     private moveTimer : number = 0;
     private moving : boolean = false;
-
     private target : Vector;
 
     private direction : Direction = Direction.None;
 
     private active : boolean = true;
-    
+
+    private animationTimer : number = 0.0;
+
     private readonly effectCallback : EffectCallback;
 
     // These are public to save bytes
@@ -62,19 +63,19 @@ export class GameObject {
 
 
     // This is called when the player leaves certain tiles
-    private precheckUnderlyingTiles(activeScene : PuzzleState, event : ProgramEvent) : void {
+    private precheckUnderlyingTiles(activeState : PuzzleState, event : ProgramEvent) : void {
 
-        if (this.type != GameObjectType.Player) {
+        if (this.type != GameObjectType.Player || activeState.turnsLeft <= 0) {
 
             return;
         }
 
-        const bottomTile : number = activeScene.getTile(0, this.pos.x, this.pos.y);
+        const bottomTile : number = activeState.getTile(0, this.pos.x, this.pos.y);
 
         // Cross
         if (bottomTile == 5) {
 
-            activeScene.setTile(0, this.pos.x, this.pos.y, 4);
+            activeState.setTile(0, this.pos.x, this.pos.y, 4);
 
             this.effectCallback(EffectType.SpreadingHole, this.pos.x, this.pos.y);
 
@@ -86,7 +87,8 @@ export class GameObject {
 
     private moveTo(activeState : PuzzleState, x : number, y : number, event : ProgramEvent) : boolean {
 
-        if (activeState.isSolid(x, y, this.type == GameObjectType.Rock)) {
+        if (activeState.isSolid(x, y, 
+            this.type == GameObjectType.Rock || activeState.turnsLeft <= 0)) {
 
             return false;
         }
@@ -122,7 +124,39 @@ export class GameObject {
     }
 
 
-    private drawPlayer(canvas : Canvas) : void {
+    private drawGhost(canvas : Canvas) : void {
+
+        const FACE_OFF_X : number[] = [6, 0, -4, 0];
+        const FACE_OFF_Y : number[] = [0, 0, 0, 1];
+
+        const dy : number = this.renderPos.y - 7 + Math.round(Math.sin(this.animationTimer*Math.PI*2)*1);
+
+        // Body
+        canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
+            this.renderPos.x, dy,
+            0, 48, 16, 16);
+
+        // Face
+        if (this.direction != Direction.Up) {
+
+            const sw : number = this.direction == Direction.Down ? 8 : 6;
+
+            canvas.drawBitmap(BitmapAsset.GameArt, 
+                Number(this.direction == Direction.Left) as Flip,
+                this.renderPos.x + 4 + FACE_OFF_X[this.direction - 1], 
+                dy + FACE_OFF_Y[this.direction - 1] + 5,
+                16, 48, sw, 8);
+        }
+    }
+
+
+    private drawPlayer(canvas : Canvas, activeState : PuzzleState) : void {
+
+        if (activeState.turnsLeft <= 0) {
+
+            this.drawGhost(canvas);
+            return;
+        }
 
         const HORIZONTAL_BODY_FRAME_LOOKUP : number[] = [0, 1, 0, 2];
 
@@ -182,7 +216,8 @@ export class GameObject {
 
         const dir : Vector = directionToVector(direction);
         if (requirePushing && 
-            activeState.getTile(1, this.pos.x - dir.x, this.pos.y - dir.y) != GameObjectType.Player) {
+            (activeState.turnsLeft <= 0 ||
+            activeState.getTile(1, this.pos.x - dir.x, this.pos.y - dir.y) != GameObjectType.Player)) {
 
             return false;
         }
@@ -198,16 +233,30 @@ export class GameObject {
 
     public update(activeState : PuzzleState, moveSpeed : number, event : ProgramEvent) : void {
 
+        const ANIMATION_SPEED : number = 1.0/60.0;
+
         if (!this.active) {
 
             return;
         }
 
         this.move(activeState, moveSpeed, event);
+        this.animationTimer = (this.animationTimer + ANIMATION_SPEED*event.tick) % 1.0;
     }
 
 
-    public draw(canvas : Canvas) : void {
+    public drawShadow(canvas : Canvas) : void {
+
+        if (this.type != GameObjectType.Player) {
+
+            return;
+        }
+
+        canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, this.renderPos.x, this.renderPos.y + 6, 16, 56, 16, 8);
+    }
+
+
+    public draw(canvas : Canvas, activeState : PuzzleState) : void {
 
         if (!this.active) {
 
@@ -218,7 +267,7 @@ export class GameObject {
 
         case GameObjectType.Player:
 
-            this.drawPlayer(canvas);
+            this.drawPlayer(canvas, activeState);
             break;
 
         case GameObjectType.Rock:

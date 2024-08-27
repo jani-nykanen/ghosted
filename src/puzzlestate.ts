@@ -10,6 +10,9 @@ export class PuzzleState {
 
     private layers : number[][];
 
+    // Public to save bytes
+    public turnsLeft : number = 13;
+
     public readonly width : number;
     public readonly height : number;
 
@@ -19,6 +22,8 @@ export class PuzzleState {
         this.layers = new Array<number[]> (2);
 
         if (cloneableState !== undefined) {
+
+            this.turnsLeft = cloneableState.turnsLeft;
 
             this.width = cloneableState.width;
             this.height = cloneableState.height;
@@ -54,6 +59,8 @@ export class PuzzleState {
             target.layers[0][i] = this.layers[0][i];
             target.layers[1][i] = this.layers[1][i];
         }
+
+        target.turnsLeft = this.turnsLeft;
     }
 
 

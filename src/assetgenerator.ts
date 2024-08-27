@@ -36,7 +36,10 @@ const PALETTE_TABLE : number[] = [
     0b100010000, // A Darker brown
     0b101011000, // B Brown
     0b111101010, // C Yellowish
-    
+
+    // Ghost
+    0b101101110, // D Purplish thing
+    0b110010000, // E Orangish red
 ];
 
 
@@ -48,8 +51,8 @@ const GAME_ART_PALETTE_TABLE : string[] = [
     "1067", "1067", "1067", "1067", "1067", "1067", "1067", "1067",
     "1000", "1000", "1000", "1000", "10BC", "10B9", "1080", "1080",
     "1000", "1000", "1000", "000A", "10BC", "10B9", "1080", "1080",
-    "0000", "0000", "0000", "0000", "0000", "0000", "108A", "108A",
-    "0000", "0000", "0000", "0000", "0000", "0000", "0000", "0000",
+    "10D2", "10D2", "10E7", "0000", "0000", "0000", "108A", "108A",
+    "10D2", "10D2", "0000", "0000", "0000", "0000", "0000", "0000",
 ];
 
 
@@ -105,11 +108,43 @@ const generateGameArt = (rgb333 : PaletteLookup, event : ProgramEvent) : void =>
 const generateFonts = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
 
     const bmpFontRaw : Bitmap = event.getBitmap(BitmapAsset.RawFont);
-    const fontWhite : Bitmap = applyPalette(bmpFontRaw, 
+
+    const bmpFontWhite : Bitmap = applyPalette(bmpFontRaw, 
         (new Array<string>(16*4)).fill("0002"), 
         PALETTE_TABLE, rgb333);
+    const bmpFontBlack : Bitmap = applyPalette(bmpFontRaw, 
+        (new Array<string>(16*4)).fill("0001"), 
+        PALETTE_TABLE, rgb333);
 
-    event.addBitmap(BitmapAsset.FontWhite, fontWhite);
+    event.addBitmap(BitmapAsset.FontWhite, bmpFontWhite);
+    event.addBitmap(BitmapAsset.FontBlack, bmpFontBlack);
+
+    event.addBitmap(BitmapAsset.FontOutlines, 
+        createCustomBitmap(256, 64,
+            (ctx : CanvasRenderingContext2D) : void => {
+
+                for (let y = 0; y < 4; ++ y) {
+
+                    for (let x = 0; x < 16; ++ x) {
+            
+                        const dx : number = x*16 + 4;
+                        const dy : number = y*16 + 6
+            
+                        // Outlines
+                        for (let i = -1; i <= 1; ++ i) {
+            
+                            for (let j = -1; j <= 1; ++ j) {
+            
+                                // if (i == j) continue;
+                                ctx.drawImage(bmpFontBlack, x*8, y*8, 8, 8, dx + i, dy + j, 8, 8);
+                            }
+                        }
+            
+                        // Base characters
+                        ctx.drawImage(bmpFontWhite, x*8, y*8, 8, 8, dx, dy, 8, 8);
+                    }
+                }
+            }));
 }
 
 

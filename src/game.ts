@@ -1,4 +1,4 @@
-import { Canvas, Flip } from "./canvas.js";
+import { Align, Canvas, Flip } from "./canvas.js";
 import { InputState, ProgramEvent } from "./event.js";
 import { Action, BitmapAsset } from "./mnemonics.js";
 import { Scene, SceneParameter } from "./scene.js";
@@ -287,6 +287,15 @@ x
     }
 
 
+    private drawHUD(canvas : Canvas) : void {
+
+        canvas.drawText(BitmapAsset.FontOutlines, "#",
+            canvas.width/2 - 18, 2);
+        canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState.turnsLeft),
+            canvas.width/2 + 4, 2, -8, 0, Align.Center);
+    }
+
+
     public onChange(param : SceneParameter, event : ProgramEvent) : void {
 
         // TODO: Get the level index from param?
@@ -345,7 +354,7 @@ x
 
         if (wasMoving && !this.isMoving) {
 
-            // console.log("Turn played!");
+            this.activeState.turnsLeft = Math.max(0, this.activeState.turnsLeft - 1);
 
             this.checkUnderlyingTiles(event);
             this.stateBuffer.push(new PuzzleState(this.activeState));
@@ -384,6 +393,7 @@ x
         }
 
         canvas.moveTo();
+        this.drawHUD(canvas);
     }
 
 

@@ -24,5 +24,7 @@ export const enum BitmapAsset {
     RawFont = 0,
     RawGameArt = 1,
     GameArt = 2,
-    FontWhite = 3
+    FontWhite = 3,
+    FontBlack = 4,
+    FontOutlines = 5,
 };

@@ -65,20 +65,31 @@ export class GameObject {
     // This is called when the player leaves certain tiles
     private precheckUnderlyingTiles(activeState : PuzzleState, event : ProgramEvent) : void {
 
-        if (this.type != GameObjectType.Player || activeState.turnsLeft <= 0) {
+        if (this.type != GameObjectType.Player) {
 
             return;
         }
 
+        const isGhost : boolean = activeState.turnsLeft <= 0;
+
         const bottomTile : number = activeState.getTile(0, this.pos.x, this.pos.y);
 
         // Cross
-        if (bottomTile == 5) {
+        if (!isGhost && bottomTile == 5) {
 
             activeState.setTile(0, this.pos.x, this.pos.y, 4);
 
             this.effectCallback(EffectType.SpreadingHole, this.pos.x, this.pos.y);
 
+            // TODO: Sound effect!
+        }
+
+        // Slime
+        if (isGhost && bottomTile == 0) {
+
+            activeState.setTile(0, this.pos.x, this.pos.y, 6);
+
+            this.effectCallback(EffectType.EmergingSlime, this.pos.x, this.pos.y);
             // TODO: Sound effect!
         }
     }
@@ -140,12 +151,13 @@ export class GameObject {
         if (this.direction != Direction.Up) {
 
             const sw : number = this.direction == Direction.Down ? 8 : 6;
+            const shiftx : number = this.direction == Direction.Left ? 2 : 0; 
 
             canvas.drawBitmap(BitmapAsset.GameArt, 
-                Number(this.direction == Direction.Left) as Flip,
+                Flip.None,
                 this.renderPos.x + 4 + FACE_OFF_X[this.direction - 1], 
                 dy + FACE_OFF_Y[this.direction - 1] + 5,
-                16, 48, sw, 8);
+                16 + shiftx, 48, sw, 8);
         }
     }
 
@@ -323,6 +335,15 @@ export class GameObject {
             this.effectCallback(EffectType.ShrinkingHole, this.pos.x, this.pos.y);
 
             // TODO: Sound effect!
+        }
+
+        // Slime
+        if (this.type == GameObjectType.Player && activeScene.turnsLeft > 0 && bottomTile == 6) {
+
+            activeScene.setTile(0, this.pos.x, this.pos.y, 0);
+
+            // TODO: Sound effect!
+            // TODO 2: and the splash effect!
         }
     }
 

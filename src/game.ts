@@ -15,6 +15,7 @@ export const enum EffectType {
     None = 0,
     SpreadingHole = 1, // what now
     ShrinkingHole = 2,
+    EmergingSlime = 3,
 };
 
 
@@ -224,6 +225,7 @@ x
 
                 this.drawFloorTile(canvas, x, y);
 
+                // TODO: Use a lookup table since a lot of repeating drawBitmap calls?
                 switch (tileID) {
 
                 // Hole
@@ -234,6 +236,11 @@ x
                 // Cross
                 case 5:
                     canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx + 4, dy + 4, 24, 40, 8, 8);
+                    break;
+
+                // Slime
+                case 6:
+                    canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, 32, 48, 16, 16);
                     break;
 
                 default:
@@ -278,6 +285,22 @@ x
                 this.effectPos.x*16 + (16 - dim)/2,
                 this.effectPos.y*16 + (16 - dim)/2,
                 HOLE_SX[frame], HOLE_SY[frame], dim, dim);
+            }
+            break;
+
+        case EffectType.EmergingSlime: {
+
+            this.drawFloorTile(canvas, this.effectPos.x, this.effectPos.y);
+
+            const frame : number = Math.min(2, ((1.0 - this.effectTimer)*3) | 0);
+            if (frame == 0) {
+                break;
+            }
+
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
+                this.effectPos.x*16 + 4,
+                this.effectPos.y*16 + 4,
+                48 + (frame - 1)*8, 56, 8, 8);
             }
             break;
 

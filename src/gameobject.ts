@@ -65,7 +65,7 @@ export class GameObject {
     // This is called when the player leaves certain tiles
     private precheckUnderlyingTiles(activeState : PuzzleState, event : ProgramEvent) : void {
 
-        if (this.type != GameObjectType.Player) {
+        if (!this.active || this.type != GameObjectType.Player) {
 
             return;
         }
@@ -323,6 +323,11 @@ export class GameObject {
 
     public checkUnderlyingTiles(activeScene : PuzzleState, event : ProgramEvent) : void {
 
+        if (!this.active) {
+
+            return;
+        }
+
         const bottomTile : number = activeScene.getTile(0, this.pos.x, this.pos.y);
 
         // Hole
@@ -342,8 +347,10 @@ export class GameObject {
 
             activeScene.setTile(0, this.pos.x, this.pos.y, 0);
 
+            this.effectCallback(EffectType.SplashingSlime, this.pos.x, this.pos.y);
+
             // TODO: Sound effect!
-            // TODO 2: and the splash effect!
+            
         }
     }
 

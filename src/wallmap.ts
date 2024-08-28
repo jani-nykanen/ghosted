@@ -134,7 +134,7 @@ const computeTileShadow = (target : number[], neighborhood : boolean[],
 		} 
         else if (!neighborhood[1]) {
 
-			target[index] = 7;
+			target[index] = 5;
 		}
     }
     else {
@@ -164,7 +164,7 @@ const computeTileShadow = (target : number[], neighborhood : boolean[],
 	// Left
 	if (neighborhood[3]) {
 
-		target[index + tilemap.width*2] = 7;
+		target[index + tilemap.width*2] = 5;
 	}
 }
 

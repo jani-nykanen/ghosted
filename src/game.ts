@@ -16,6 +16,7 @@ export const enum EffectType {
     SpreadingHole = 1, // what now
     ShrinkingHole = 2,
     EmergingSlime = 3,
+    SplashingSlime = 4,
 };
 
 
@@ -41,6 +42,7 @@ export class Game implements Scene {
     private effectType : EffectType = EffectType.None;
     private effectTimer : number = 0.0;
     private effectPos : Vector = new Vector(0, 0);
+    private blockingEffect : boolean = true;
 
 
     private readonly setEffect : EffectCallback = (type : EffectType, x : number, y : number) => {
@@ -50,6 +52,8 @@ export class Game implements Scene {
 
         this.effectType = type;
         this.effectTimer = 1.0;
+
+        this.blockingEffect = type != EffectType.SplashingSlime;
     };
 
 
@@ -171,6 +175,14 @@ export class Game implements Scene {
 
     private drawFrame(canvas : Canvas) : void {
 
+        // Shadow
+        canvas.setAlpha(0.25);
+        canvas.setColor("#000000");
+        canvas.fillRect(-2, 4, this.width*16 + 13, this.height*16 + 12);
+        canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, this.width*16 + 7, -1, 16, 32, 5, 5);
+        canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, -7, this.height*16 + 12, 24, 32, 5, 5);
+        canvas.setAlpha();
+
         // Background color
         canvas.fillRect(-2, -2, this.width*16 + 4, this.height*16 + 4, "#924900");
 
@@ -191,6 +203,7 @@ export class Game implements Scene {
                 x*8, this.height*16 + 6, corner ? 48 : 56, 8, 8, 8);
         }
 
+        
         // Vertical
         for (let y = 0; y < this.height*2; ++ y) {
 
@@ -203,7 +216,7 @@ export class Game implements Scene {
         }
     }
 
-x
+
     private drawFloorTile(canvas : Canvas, x : number, y : number) : void {
 
         canvas.fillRect(x*16, y*16, 16, 16, x % 2 == y % 2 ? "#ffdb92" : "#dbb66d");
@@ -261,16 +274,20 @@ x
             return;
         }
 
+        const dx : number = this.effectPos.x*16;
+        const dy : number = this.effectPos.y*16;
+
+        const t : number = 1 - this.effectTimer;
+
         switch (this.effectType) {
 
         case EffectType.SpreadingHole: {
 
-            const frame : number = Math.min(2, ((1.0 - this.effectTimer)*3) | 0);
+            const frame : number = Math.min(2, (t*3) | 0);
 
             this.drawFloorTile(canvas, this.effectPos.x, this.effectPos.y);
             canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 
-                this.effectPos.x*16 + 4,
-                this.effectPos.y*16 + 4,
+                dx + 4, dy + 4,
                 HOLE_SX[frame], HOLE_SY[frame], 8, 8);
             }
             break;
@@ -282,8 +299,7 @@ x
             const dim : number = frame == 3 ? 16 : 8;
 
             canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 
-                this.effectPos.x*16 + (16 - dim)/2,
-                this.effectPos.y*16 + (16 - dim)/2,
+                dx + (16 - dim)/2, dy+ (16 - dim)/2,
                 HOLE_SX[frame], HOLE_SY[frame], dim, dim);
             }
             break;
@@ -298,10 +314,16 @@ x
             }
 
             canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
-                this.effectPos.x*16 + 4,
-                this.effectPos.y*16 + 4,
+                dx + 4, dy + 4,
                 48 + (frame - 1)*8, 56, 8, 8);
             }
+            break;
+
+        case EffectType.SplashingSlime:
+
+            canvas.setColor("#6d6db6");
+            canvas.fillRing(dx + 8, dy + 8, t*8, 2 + t*8);
+
             break;
 
         default:
@@ -354,7 +376,7 @@ x
         }
 
         let anyMoved : boolean = false;
-        if (this.effectTimer <= 0.0) {
+        if (this.effectTimer <= 0.0 || !this.blockingEffect) {
 
             do {
 
@@ -404,12 +426,11 @@ x
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
 
-
         this.drawFrame(canvas);
         this.drawBottomLayer(canvas);
         this.drawEffect(canvas);
         drawWallMap(canvas, this.wallMap, this.shadowMap, this.baseMap.width, this.baseMap.height);
-
+        
         this.objects.sort((a : GameObject, b : GameObject) => a.renderPos.y - b.renderPos.y);
 
         // Shadows

@@ -83,11 +83,15 @@ export class PuzzleState {
 
     public isSolid(x : number, y : number, ignoreSpecialTiles : boolean) : boolean {
 
+        const bottom : number = this.getTile(0, x, y);
+        const topTile : number = this.getTile(1, x, y);
+
         // TODO: All the other missing checks
         // TODO 2: Use a table
-        return this.getTile(0, x, y) == 1 ||  
-            this.getTile(1, x, y) != 0 ||
-            (!ignoreSpecialTiles && this.getTile(0, x, y) == 4)
+        return topTile != 0 ||  
+            bottom == 1 ||
+            (!ignoreSpecialTiles && bottom == 4) ||
+            (ignoreSpecialTiles && bottom == 6)
     }
 
 

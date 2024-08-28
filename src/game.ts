@@ -156,19 +156,22 @@ export class Game implements Scene {
 
         const GRID_SIZE : number = 32;
 
-        canvas.setColor("#4992ff");
+        canvas.setColor("#2492ff");
 
         const loopx : number = ((canvas.width/GRID_SIZE + 1)/2) | 0;
         const loopy : number = ((canvas.height/GRID_SIZE + 1)/2) | 0;
 
-        for (let y = -loopy; y < loopy; ++ y) {
+        for (let y = -loopy - 1; y < loopy + 2; ++ y) {
 
-            canvas.fillRect(0, canvas.height/2 - y*GRID_SIZE, canvas.width, 1);
-        }
+            for (let x = -loopx - 1; x < loopx + 2; ++ x) {
 
-        for (let x = -loopx; x < loopx; ++ x) {
+                if ((y + loopy*2) % 2 == (x + loopx*2) % 2)
+                    continue;
 
-            canvas.fillRect(canvas.width/2 - x*GRID_SIZE, 0, 1, canvas.height);
+                canvas.fillRect(
+                    canvas.width/2 - x*GRID_SIZE, canvas.height/2 - y*GRID_SIZE, 
+                    GRID_SIZE, GRID_SIZE);
+            }
         }
     }
 
@@ -319,11 +322,14 @@ export class Game implements Scene {
             }
             break;
 
-        case EffectType.SplashingSlime:
+        case EffectType.SplashingSlime: 
 
+            if (t > 0.5) {
+
+                break;
+            }
             canvas.setColor("#6d6db6");
-            canvas.fillRing(dx + 8, dy + 8, t*8, 2 + t*8);
-
+            canvas.fillRing(dx + 8, dy + 8, t*2*8, 2 + t*2*8);
             break;
 
         default:
@@ -399,9 +405,9 @@ export class Game implements Scene {
 
         if (wasMoving && !this.isMoving) {
 
-            this.activeState.turnsLeft = Math.max(0, this.activeState.turnsLeft - 1);
-
             this.checkUnderlyingTiles(event);
+
+            this.activeState.turnsLeft = Math.max(0, this.activeState.turnsLeft - 1);
             this.stateBuffer.push(new PuzzleState(this.activeState));
             if (this.stateBuffer.length >= MAX_BUFFER_SIZE) {
 

@@ -39,6 +39,7 @@ export class GameObject {
     private direction : Direction = Direction.None;
 
     private active : boolean = true;
+    private jumping : boolean = false;
 
     private animationTimer : number = 0.0;
 
@@ -112,6 +113,15 @@ export class GameObject {
         this.moving = true;
 
         this.target = new Vector(x, y);
+
+        // Check if jumping to objects
+        this.jumping = false;
+        if (this.type == GameObjectType.Player &&
+            activeState.getTile(0, x, y) == 6) {
+
+            this.jumping = true;
+            // TODO: Sound effect
+        }
         
         return true;
     }
@@ -172,9 +182,14 @@ export class GameObject {
 
         const HORIZONTAL_BODY_FRAME_LOOKUP : number[] = [0, 1, 0, 2];
 
-        const dy : number = this.renderPos.y - 6;
+        let dy : number = this.renderPos.y - 6;
+        let frame : number = ((this.moveTimer*2) | 0) + Number(this.pos.x % 2 == this.pos.y % 2)*2;;
+        if (this.moving && this.jumping) {
 
-        const frame : number = ((this.moveTimer*2) | 0) + Number(this.pos.x % 2 == this.pos.y % 2)*2;
+            dy -= Math.sin(this.moveTimer*Math.PI)*4;
+            frame = 3;
+        }
+
         if (this.direction % 2 == 0) {
 
             const flip : Flip = (Number(frame == 3)) as Flip;

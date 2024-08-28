@@ -202,9 +202,7 @@ export const drawWallMap = (canvas : Canvas, wallMap : number[], shadowMap : num
 
         for (let x = 0; x < width*2; ++ x) {
 
-            const tileID : number = wallMap[y*width*2 + x] - 1;
             const shadowId : number = shadowMap[y*width*2 + x] - 1;
-
             if (shadowId >= 0) {
                     
                 const sx : number = shadowId % 4;
@@ -215,6 +213,7 @@ export const drawWallMap = (canvas : Canvas, wallMap : number[], shadowMap : num
                 canvas.setAlpha();
             }
 
+            const tileID : number = wallMap[y*width*2 + x] - 1;
             if (tileID == -2) {
 
                 continue;

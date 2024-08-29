@@ -6,11 +6,17 @@ import { PuzzleState } from "./puzzlestate.js";
 import { EffectCallback, EffectType } from "./game.js";
 
 
+
 export const enum GameObjectType {
 
     Unknown = 0,
+
+    // Bottom layer
     Player = 2,
-    Rock = 3
+    Rock = 3,
+
+    // Top layer
+    Coin = 7,
 }
 
 
@@ -218,7 +224,32 @@ export class GameObject {
             this.renderPos.x, dy + 8, 
             16 + 16*HORIZONTAL_BODY_FRAME_LOOKUP[frame], 
             24, 16, 8);
+    }
 
+
+    private drawCoin(canvas : Canvas, activeState : PuzzleState) : void {
+
+        const SOURCE_X : number[] = [0, 12, 20, 12];
+        const SOURCE_WIDTH : number[] = [12, 8, 4, 8];
+
+        const frame : number = ((this.animationTimer*8) | 0) % 4;
+
+        const sw : number = SOURCE_WIDTH[frame];
+        const dx : number = this.renderPos.x + 8 - sw/2;
+
+        if (activeState.turnsLeft > 0) {
+
+            canvas.setAlpha(0.33);
+        }
+
+        canvas.drawBitmap(BitmapAsset.GameArt, Number(frame == 3) as Flip,
+            dx, this.renderPos.y - 3 + 
+                Math.round(
+                    Math.sin(this.animationTimer*Math.PI*2 + Number(this.pos.x % 2 == this.pos.y % 2)*Math.PI)
+                ), 
+            SOURCE_X[frame], 64, sw, 12);
+
+        canvas.setAlpha();
     }
 
 
@@ -229,7 +260,11 @@ export class GameObject {
             return false;
         }
 
-        const requirePushing : boolean = this.type != GameObjectType.Player;
+        const requirePushing : boolean = this.type == GameObjectType.Rock;
+        if (this.type != GameObjectType.Player && !requirePushing) {
+
+            return false;
+        }
 
         let direction : Direction = Direction.None;
         for (let i = 0; i < 4; ++ i) {
@@ -274,12 +309,26 @@ export class GameObject {
 
     public drawShadow(canvas : Canvas) : void {
 
-        if (this.type != GameObjectType.Player) {
+        if (!this.active) {
 
             return;
         }
 
-        canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, this.renderPos.x, this.renderPos.y + 6, 16, 56, 16, 8);
+        switch (this.type) {
+
+        case GameObjectType.Player:
+            //canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, this.renderPos.x, this.renderPos.y + 6, 16, 56, 16, 8);
+            // break;
+        // Fallthrough
+        case GameObjectType.Coin:
+
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, this.renderPos.x, this.renderPos.y + 6, 16, 56, 16, 8);
+            break;
+
+        default:
+            break;
+
+        }
     }
 
 
@@ -302,6 +351,11 @@ export class GameObject {
             canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 
                 this.renderPos.x, this.renderPos.y - 1, 
                 32, 32, 16, 16);
+            break;
+
+        case GameObjectType.Coin:
+
+            this.drawCoin(canvas, activeState);
             break;
 
         default:
@@ -336,11 +390,11 @@ export class GameObject {
     }
 
 
-    public checkUnderlyingTiles(activeScene : PuzzleState, event : ProgramEvent) : void {
+    public checkUnderlyingTiles(activeScene : PuzzleState, event : ProgramEvent) : boolean {
 
         if (!this.active) {
 
-            return;
+            return false;
         }
 
         const bottomTile : number = activeScene.getTile(0, this.pos.x, this.pos.y);
@@ -365,8 +419,26 @@ export class GameObject {
             this.effectCallback(EffectType.SplashingSlime, this.pos.x, this.pos.y);
 
             // TODO: Sound effect!
-            
         }
+
+        // Coin
+        if (this.type == GameObjectType.Player && activeScene.turnsLeft <= 0 && bottomTile == 7) {
+
+            activeScene.setTile(0, this.pos.x, this.pos.y, 0);
+
+            // TODO: Sound effect!
+
+            // Send a signal that the tiles should be checked again
+            return true;
+        }
+
+        // Vanishing coin
+        if (this.type == GameObjectType.Coin && bottomTile != 7) {
+
+            this.active = false;
+        }
+
+        return false;
     }
 
 

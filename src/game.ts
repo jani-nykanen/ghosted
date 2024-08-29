@@ -10,6 +10,10 @@ import { Direction, GameObject, GameObjectType } from "./gameobject.js";
 import { Vector } from "./vector.js";
 
 
+const BOTTOM_TILE_OBJECTS : number[] = [7];
+const TOP_TILE_OBJECTS : number[] = [2, 3];
+
+
 export const enum EffectType {
 
     None = 0,
@@ -67,30 +71,38 @@ export class Game implements Scene {
 
     private parseInitialObject() : void {
 
-        this.activeState.iterate(1, (id : number, x : number, y : number) : void => {
+        this.activeState.iterate((bottomTileID : number, topTileID : number, x : number, y : number) : void => {
 
-            switch (id) {
+            // Bottom layer objects
+            if (BOTTOM_TILE_OBJECTS.includes(bottomTileID)) {
 
-            // Player & rock
-            case 2:
-            case 3:
-
-                this.objects.push(new GameObject(id as GameObjectType, x, y, this.setEffect));
-                break;
-
-            default:
-                break;
+                this.objects.push(new GameObject(bottomTileID as GameObjectType, x, y, this.setEffect));
             }
+            // Top layer objects
+            if (TOP_TILE_OBJECTS.includes(topTileID)) {
 
+                this.objects.push(new GameObject(topTileID as GameObjectType, x, y, this.setEffect));
+            }
         });
     }
 
 
     private checkUnderlyingTiles(event : ProgramEvent) : void {
 
+        let doubleCheck : boolean = false;
+
         for (let o of this.objects) {
 
-            o.checkUnderlyingTiles(this.activeState, event);
+            doubleCheck = o.checkUnderlyingTiles(this.activeState, event) || doubleCheck;
+        }
+
+        // This is required in the case there is a vanishing object
+        if (doubleCheck) {
+
+            for (let o of this.objects) {
+
+                o.checkUnderlyingTiles(this.activeState, event);
+            }
         }
     } 
 
@@ -104,25 +116,41 @@ export class Game implements Scene {
             o.stopMoving();
         }
 
-        const resetIndices : boolean[] = (new Array<boolean> (this.objects.length)).fill(false);
+        const resetIndicesTop : boolean[] = (new Array<boolean> (this.objects.length)).fill(false);
+        const resetIndicesBottom : boolean[] = (new Array<boolean> (this.objects.length)).fill(false);
 
         // Reset objects to the their corresponding locations
-        this.activeState.iterate(1, (tileID : number, x : number, y : number) : void => {
+        this.activeState.iterate((bottomTileID : number, topTileID : number, x : number, y : number) : void => {
 
-            if (tileID <= 1) {
+            // Note: had to do this twice since there might be two objects in the same tile.
+            // "Good design" I call it...
+            // TODO: Maybe pass bottomTileID and topTileID in a single array?
 
-                return;
-            }
-
+            // Bottom
             for (let i = 0; i < this.objects.length; ++ i) {
 
                 const o : GameObject = this.objects[i];
-                if (resetIndices[i] || (tileID & 31) != o.type) {
+                
+                if (resetIndicesBottom[i] || (bottomTileID & 31) != o.type) {
 
                     continue;
                 }
-                resetIndices[i] = true;
-                o.setPosition(x, y, (tileID >> 5) as Direction);
+                resetIndicesBottom[i] = true;
+                o.setPosition(x, y, (bottomTileID >> 5) as Direction);
+                break;
+            }
+
+            // Top
+            for (let i = 0; i < this.objects.length; ++ i) {
+
+                const o : GameObject = this.objects[i];
+                
+                if (resetIndicesTop[i] || (topTileID & 31) != o.type) {
+
+                    continue;
+                }
+                resetIndicesTop[i] = true;
+                o.setPosition(x, y, (topTileID >> 5) as Direction);
                 break;
             }
         });
@@ -158,12 +186,12 @@ export class Game implements Scene {
 
         canvas.setColor("#2492ff");
 
-        const loopx : number = ((canvas.width/GRID_SIZE + 1)/2) | 0;
-        const loopy : number = ((canvas.height/GRID_SIZE + 1)/2) | 0;
+        const loopx : number = (((canvas.width/GRID_SIZE + 1)/2) | 0) + 1;
+        const loopy : number = (((canvas.height/GRID_SIZE + 1)/2) | 0) + 1;
 
-        for (let y = -loopy - 1; y < loopy + 2; ++ y) {
+        for (let y = -loopy - 1; y <= loopy; ++ y) {
 
-            for (let x = -loopx - 1; x < loopx + 2; ++ x) {
+            for (let x = -loopx - 1; x <= loopx; ++ x) {
 
                 if ((y + loopy*2) % 2 == (x + loopx*2) % 2)
                     continue;

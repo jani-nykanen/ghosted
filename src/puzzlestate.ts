@@ -1,7 +1,7 @@
 import { Tilemap } from "./tilemap.js";
 
 
-const BOTTOM_LAYER_TILES : number[] = [1, 4, 5, 6];
+const BOTTOM_LAYER_TILES : number[] = [1, 4, 5, 6, 7];
 const TOP_LAYER_TILES : number[] = [2, 3];
 
 
@@ -64,18 +64,13 @@ export class PuzzleState {
     }
 
 
-    public iterate(layer : number, func : (tileID : number, x : number, y : number) => void) : void {
-
-        if (layer < 0 || layer >= this.layers.length) {
-
-            return;
-        }
+    public iterate(func : (bottomTileID : number, topTileID : number, x : number, y : number) => void) : void {
 
         for (let y = 0; y < this.height; ++ y) {
 
             for (let x = 0; x < this.width; ++ x) {
 
-                func(this.layers[layer][y*this.width + x], x, y);
+                func(this.layers[0][y*this.width + x], this.layers[1][y*this.width + x], x, y);
             }
         }
     }

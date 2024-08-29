@@ -48,6 +48,8 @@ export class Game implements Scene {
     private effectPos : Vector = new Vector(0, 0);
     private blockingEffect : boolean = true;
 
+    private transformTimer : number = 0;
+
 
     private readonly setEffect : EffectCallback = (type : EffectType, x : number, y : number) => {
 
@@ -110,6 +112,7 @@ export class Game implements Scene {
     private resetState() : void {
 
         this.effectTimer = 0.0;
+        this.transformTimer = 0.0;
 
         for (let o of this.objects) {
 
@@ -248,12 +251,6 @@ export class Game implements Scene {
     }
 
 
-    private drawFloorTile(canvas : Canvas, x : number, y : number) : void {
-
-        canvas.fillRect(x*16, y*16, 16, 16, x % 2 == y % 2 ? "#ffdb92" : "#dbb66d");
-    }
-
-
     private drawBottomLayer(canvas : Canvas) : void {
 
         canvas.fillRect(8, 8, (this.width - 1)*16, (this.height - 1)*16, "#000000");
@@ -267,7 +264,13 @@ export class Game implements Scene {
                 const dx : number = x*16;
                 const dy : number = y*16;
 
-                this.drawFloorTile(canvas, x, y);
+                canvas.fillRect(x*16, y*16, 16, 16, x % 2 == y % 2 ? "#ffdb92" : "#dbb66d");
+
+                if (this.effectTimer > 0 &&
+                    x == this.effectPos.x && y == this.effectPos.y) {
+
+                    continue;
+                }
 
                 // TODO: Use a lookup table since a lot of repeating drawBitmap calls?
                 switch (tileID) {
@@ -296,7 +299,7 @@ export class Game implements Scene {
 
 
     private drawEffect(canvas : Canvas) : void {
-
+        
         const HOLE_SX : number[] = [24, 48, 56, 48];
         const HOLE_SY : number[] = [40, 48, 48, 32];
 
@@ -316,7 +319,7 @@ export class Game implements Scene {
 
             const frame : number = Math.min(2, (t*3) | 0);
 
-            this.drawFloorTile(canvas, this.effectPos.x, this.effectPos.y);
+            // this.drawFloorTile(canvas, this.effectPos.x, this.effectPos.y);
             canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 
                 dx + 4, dy + 4,
                 HOLE_SX[frame], HOLE_SY[frame], 8, 8);
@@ -337,7 +340,7 @@ export class Game implements Scene {
 
         case EffectType.EmergingSlime: {
 
-            this.drawFloorTile(canvas, this.effectPos.x, this.effectPos.y);
+            // this.drawFloorTile(canvas, this.effectPos.x, this.effectPos.y);
 
             const frame : number = Math.min(2, ((1.0 - this.effectTimer)*3) | 0);
             if (frame == 0) {
@@ -368,6 +371,11 @@ export class Game implements Scene {
 
     private drawHUD(canvas : Canvas) : void {
 
+        if (((this.transformTimer/4) | 0) % 2 != 0) {
+
+            return;
+        }
+
         canvas.drawText(BitmapAsset.FontOutlines, "#",
             canvas.width/2 - 18, 2);
         canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState.turnsLeft),
@@ -395,6 +403,7 @@ export class Game implements Scene {
 
     public update(event : ProgramEvent) : void {
 
+        const GHOST_TRANSFORM_TIMER : number = 30;
         const MAX_BUFFER_SIZE : number = 64;
         const MOVE_SPEED : number = 1.0/16.0;
 
@@ -410,7 +419,8 @@ export class Game implements Scene {
         }
 
         let anyMoved : boolean = false;
-        if (this.effectTimer <= 0.0 || !this.blockingEffect) {
+        if (this.transformTimer <= 0 && 
+            (this.effectTimer <= 0.0 || !this.blockingEffect)) {
 
             do {
 
@@ -435,6 +445,12 @@ export class Game implements Scene {
 
             this.checkUnderlyingTiles(event);
 
+            // Turn into a ghost
+            if (this.activeState.turnsLeft == 1) {
+
+                this.transformTimer = GHOST_TRANSFORM_TIMER;
+            }
+
             this.activeState.turnsLeft = Math.max(0, this.activeState.turnsLeft - 1);
             this.stateBuffer.push(new PuzzleState(this.activeState));
             if (this.stateBuffer.length >= MAX_BUFFER_SIZE) {
@@ -446,6 +462,11 @@ export class Game implements Scene {
         if (this.effectTimer > 0) {
 
             this.effectTimer -= MOVE_SPEED*event.tick;
+        }
+
+        if (this.transformTimer > 0) {
+
+            this.transformTimer -= event.tick;
         }
     }
 
@@ -459,11 +480,20 @@ export class Game implements Scene {
         canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 16, 16);
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
+        /*
+        if (this.transformTimer > 0) {
+
+            const shakex : number = -2 + ((Math.random()*5) | 0);
+            const shakey : number = -2 + ((Math.random()*5) | 0);
+
+            canvas.move(shakex, shakey);
+        }
+        */
 
         this.drawFrame(canvas);
         this.drawBottomLayer(canvas);
-        this.drawEffect(canvas);
         drawWallMap(canvas, this.wallMap, this.shadowMap, this.baseMap.width, this.baseMap.height);
+        this.drawEffect(canvas);
         
         this.objects.sort((a : GameObject, b : GameObject) => a.renderPos.y - b.renderPos.y);
 
@@ -477,7 +507,7 @@ export class Game implements Scene {
         // Objects itself
         for (let o of this.objects) {
 
-            o.draw(canvas, this.activeState);
+            o.draw(canvas, this.activeState, this.transformTimer);
         }
 
         canvas.moveTo();

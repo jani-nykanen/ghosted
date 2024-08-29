@@ -7,6 +7,9 @@ import { EffectCallback, EffectType } from "./game.js";
 
 
 
+const DEATH_TIMER : number = 12;
+
+
 export const enum GameObjectType {
 
     Unknown = 0,
@@ -48,6 +51,8 @@ export class GameObject {
     private jumping : boolean = false;
 
     private animationTimer : number = 0.0;
+
+    private deathTimer : number = 0;
 
     private readonly effectCallback : EffectCallback;
 
@@ -299,6 +304,10 @@ export class GameObject {
 
         if (!this.active) {
 
+            if (this.deathTimer > 0) {
+
+                this.deathTimer -= event.tick;
+            }
             return;
         }
 
@@ -332,10 +341,16 @@ export class GameObject {
     }
 
 
-    public draw(canvas : Canvas, activeState : PuzzleState) : void {
+    public draw(canvas : Canvas, activeState : PuzzleState, shakeTimer : number) : void {
 
         if (!this.active) {
 
+            if (this.deathTimer > 0 && this.type == GameObjectType.Coin) {
+
+                const t : number = 1.0 - this.deathTimer/DEATH_TIMER;
+                canvas.setColor("#ffff49");
+                canvas.fillRing(this.renderPos.x + 8, this.renderPos.y + 9, t*10, 2 + t*10);
+            }
             return;
         }
 
@@ -343,6 +358,10 @@ export class GameObject {
 
         case GameObjectType.Player:
 
+            if (((shakeTimer/2) | 0) % 2 != 0) {
+
+                return;
+            }
             this.drawPlayer(canvas, activeState);
             break;
 
@@ -365,6 +384,8 @@ export class GameObject {
 
 
     public stopMoving() : void {
+
+        this.deathTimer = 0;
 
         this.moving = false;
         this.moveTimer = 0;
@@ -415,7 +436,6 @@ export class GameObject {
         if (this.type == GameObjectType.Player && activeScene.turnsLeft > 0 && bottomTile == 6) {
 
             activeScene.setTile(0, this.pos.x, this.pos.y, 0);
-
             this.effectCallback(EffectType.SplashingSlime, this.pos.x, this.pos.y);
 
             // TODO: Sound effect!
@@ -435,7 +455,9 @@ export class GameObject {
         // Vanishing coin
         if (this.type == GameObjectType.Coin && bottomTile != 7) {
 
+            this.renderPos.y -= 1; // To avoid getting sorted in front of the player
             this.active = false;
+            this.deathTimer = DEATH_TIMER;
         }
 
         return false;

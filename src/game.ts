@@ -13,6 +13,8 @@ import { Vector } from "./vector.js";
 const BOTTOM_TILE_OBJECTS : number[] = [7];
 const TOP_TILE_OBJECTS : number[] = [2, 3];
 
+const GHOST_TRANSFORM_TIMER : number = 24;
+
 
 export const enum EffectType {
 
@@ -41,6 +43,7 @@ export class Game implements Scene {
     private height : number = 0;
 
     private objects : GameObject[];
+    private playerRef : GameObject | undefined = undefined;
     private isMoving : boolean = false;
 
     private effectType : EffectType = EffectType.None;
@@ -83,7 +86,12 @@ export class Game implements Scene {
             // Top layer objects
             if (TOP_TILE_OBJECTS.includes(topTileID)) {
 
-                this.objects.push(new GameObject(topTileID as GameObjectType, x, y, this.setEffect));
+                const o : GameObject = new GameObject(topTileID as GameObjectType, x, y, this.setEffect);
+                if (o.type == GameObjectType.Player) {
+
+                    this.playerRef = o;
+                }
+                this.objects.push(o);
             }
         });
     }
@@ -383,6 +391,37 @@ export class Game implements Scene {
     }
 
 
+    private drawTransformationEffect(canvas : Canvas) : void {
+
+        const STAR_COUNT : number = 6;
+        const MAX_STAR_DISTANCE : number = 32;
+
+        if (this.transformTimer <= 0) {
+
+            return;
+        }
+
+        const t : number = 1.0 - this.transformTimer/GHOST_TRANSFORM_TIMER;
+        const distance : number = MAX_STAR_DISTANCE*t;
+        const frame : number = (((this.transformTimer/2) | 0)) % 3;
+
+        const cx : number = this.playerRef!.renderPos.x + 8;
+        const cy : number = this.playerRef!.renderPos.y + 8;
+
+        const angleStep : number = Math.PI*2/STAR_COUNT;
+        for (let i = 0; i < STAR_COUNT; ++ i) {
+
+            const angle : number = angleStep*(i + 0.5);
+
+            const dx : number = cx + Math.cos(angle)*distance;
+            const dy : number = cy + Math.sin(angle)*distance;
+
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx - 4, dy - 4,
+                24 + frame*8, 64, 8, 8);
+        }
+    }
+
+
     public onChange(param : SceneParameter, event : ProgramEvent) : void {
 
         // TODO: Get the level index from param?
@@ -403,7 +442,6 @@ export class Game implements Scene {
 
     public update(event : ProgramEvent) : void {
 
-        const GHOST_TRANSFORM_TIMER : number = 30;
         const MAX_BUFFER_SIZE : number = 64;
         const MOVE_SPEED : number = 1.0/16.0;
 
@@ -451,7 +489,15 @@ export class Game implements Scene {
                 this.transformTimer = GHOST_TRANSFORM_TIMER;
             }
 
+            const oldMoveCount : number = this.activeState.turnsLeft;
             this.activeState.turnsLeft = Math.max(0, this.activeState.turnsLeft - 1);
+            if (oldMoveCount) {
+
+                // Do additional check in the case that the player is standing
+                // in the same tile as a collectable item
+                this.checkUnderlyingTiles(event);
+            }
+
             this.stateBuffer.push(new PuzzleState(this.activeState));
             if (this.stateBuffer.length >= MAX_BUFFER_SIZE) {
 
@@ -480,15 +526,6 @@ export class Game implements Scene {
         canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 16, 16);
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
-        /*
-        if (this.transformTimer > 0) {
-
-            const shakex : number = -2 + ((Math.random()*5) | 0);
-            const shakey : number = -2 + ((Math.random()*5) | 0);
-
-            canvas.move(shakex, shakey);
-        }
-        */
 
         this.drawFrame(canvas);
         this.drawBottomLayer(canvas);
@@ -507,8 +544,10 @@ export class Game implements Scene {
         // Objects itself
         for (let o of this.objects) {
 
-            o.draw(canvas, this.activeState, this.transformTimer);
+            o.draw(canvas, this.activeState);
         }
+
+        this.drawTransformationEffect(canvas);
 
         canvas.moveTo();
         this.drawHUD(canvas);

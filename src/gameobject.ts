@@ -128,7 +128,7 @@ export class GameObject {
         // Check if jumping to objects
         this.jumping = false;
         if (this.type == GameObjectType.Player &&
-            activeState.getTile(0, x, y) == 6) {
+            (activeState.getTile(0, x, y) == 6)) {
 
             this.jumping = true;
             // TODO: Sound effect
@@ -341,15 +341,18 @@ export class GameObject {
     }
 
 
-    public draw(canvas : Canvas, activeState : PuzzleState, shakeTimer : number) : void {
+    public draw(canvas : Canvas, activeState : PuzzleState) : void {
 
         if (!this.active) {
 
+            // Disappearing coin
             if (this.deathTimer > 0 && this.type == GameObjectType.Coin) {
 
                 const t : number = 1.0 - this.deathTimer/DEATH_TIMER;
+                canvas.setColor("#ff9200");
+                canvas.fillRing(this.renderPos.x + 8, this.renderPos.y + 9, t*8, 2 + t*10);
                 canvas.setColor("#ffff49");
-                canvas.fillRing(this.renderPos.x + 8, this.renderPos.y + 9, t*10, 2 + t*10);
+                canvas.fillRing(this.renderPos.x + 7, this.renderPos.y + 8, t*9, 2 + t*10);
             }
             return;
         }
@@ -358,10 +361,6 @@ export class GameObject {
 
         case GameObjectType.Player:
 
-            if (((shakeTimer/2) | 0) % 2 != 0) {
-
-                return;
-            }
             this.drawPlayer(canvas, activeState);
             break;
 

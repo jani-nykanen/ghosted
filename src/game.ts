@@ -176,6 +176,8 @@ export class Game implements Scene {
             return;
         }
 
+        event.playSample(SoundEffect.Undo);
+
         this.stateBuffer[this.stateBuffer.length - 2].cloneTo(this.activeState);
         this.stateBuffer.pop();
 
@@ -187,6 +189,8 @@ export class Game implements Scene {
 
         this.activeState = new PuzzleState(undefined, this.baseMap);
         this.resetState();
+
+        event.playSample(SoundEffect.Restart);
 
         this.stateBuffer.push(new PuzzleState(this.activeState));
     }
@@ -493,6 +497,9 @@ export class Game implements Scene {
         }
 
         let anyMoved : boolean = false;
+        let nonPlayerMoved : boolean = false;
+        const wasPlayerMoving : boolean = this.playerRef!.isMoving();
+
         if (this.transformTimer <= 0 && 
             (this.effectTimer <= 0.0 || !this.blockingEffect)) {
 
@@ -501,7 +508,12 @@ export class Game implements Scene {
                 anyMoved = false;
                 for (let o of this.objects) {
 
-                    anyMoved = o.control(this.activeState, event) || anyMoved;
+                    const thisMoved : boolean = o.control(this.activeState, event);
+                    anyMoved = thisMoved || anyMoved;
+                    if (thisMoved && o.type != GameObjectType.Player) {
+
+                        nonPlayerMoved = true;
+                    }
                 }
                 if (anyMoved) {
 
@@ -510,6 +522,16 @@ export class Game implements Scene {
             }
             while (anyMoved);
         }
+
+        // Only play walk sound when nothing else moves
+        if (!wasPlayerMoving && 
+            this.playerRef!.isMoving() && 
+            !this.playerRef!.jumping &&
+            !nonPlayerMoved) {
+
+            event.playSample(SoundEffect.Walk);
+        }
+
         const wasMoving : boolean = this.isMoving;
 
         this.isMoving = false;

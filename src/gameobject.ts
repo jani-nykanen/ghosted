@@ -87,8 +87,7 @@ export class GameObject {
     private direction : Direction = Direction.None;
 
     private active : boolean = true;
-    private jumping : boolean = false;
-
+    
     private animationTimer : number = 0.0;
 
     private deathTimer : number = 0;
@@ -102,6 +101,7 @@ export class GameObject {
     public type : GameObjectType;
     public pos : Vector;
     public renderPos : Vector;
+    public jumping : boolean = false;
 
 
     constructor(type : GameObjectType, x : number, y : number, effectCallback : EffectCallback) {
@@ -178,9 +178,14 @@ export class GameObject {
         
         if (this.type == GameObjectType.Rock) {
 
-            event.playSample(SoundEffect.PushBoulder, 0.60);
+            event.playSample(SoundEffect.PushBoulder);
         }
+        /*
+        else if (this.type == GameObjectType.Player && activeState.turnsLeft > 0) {
 
+            event.playSample(SoundEffect.Walk);
+        }
+        */
         return true;
     }
 

@@ -159,8 +159,8 @@ const generateFonts = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
 const generateSamples = (event : ProgramEvent) : void => {
 
     event.createSample(SoundEffect.PushBoulder,
-        [96, 5, 1.0,
-         80, 3, 0.20], 
+        [96, 6, 1.0,
+         80, 4, 0.20], 
         0.80,
         OscType.Sawtooth, 
         Ramp.Exponential);
@@ -176,7 +176,7 @@ const generateSamples = (event : ProgramEvent) : void => {
     event.createSample(SoundEffect.Splash,
         [96, 3, 0.60,
          128, 5, 1.0,
-         160, 8, 0.20], 
+         160, 12, 0.20], 
         0.50,
         OscType.Square, 
         Ramp.Exponential);
@@ -220,6 +220,28 @@ const generateSamples = (event : ProgramEvent) : void => {
          256, 8, 0.60,],
         0.40,
         OscType.Square, 
+        Ramp.Exponential);
+
+    event.createSample(SoundEffect.Undo,
+        [128, 5, 1.0,
+         96, 3, 0.50], 
+        0.50,
+        OscType.Sawtooth, 
+        Ramp.Instant);
+
+    event.createSample(SoundEffect.Restart,
+        [160, 8, 1.0,
+         128, 6, 0.30], 
+        0.40,
+        OscType.Square, 
+        Ramp.Instant);
+
+    event.createSample(SoundEffect.Walk,
+        [160, 2, 1.0,
+         96, 1, 0.50   
+        ], 
+        0.80,
+        OscType.Sawtooth, 
         Ramp.Exponential);
 }
 

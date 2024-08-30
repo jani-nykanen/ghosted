@@ -125,6 +125,9 @@ const generateFonts = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
         PALETTE_TABLE, rgb333);
 
     event.addBitmap(BitmapAsset.FontWhite, bmpFontWhite);
+    event.addBitmap(BitmapAsset.FontYellow, applyPalette(bmpFontRaw, 
+        (new Array<string>(16*4)).fill("000G"), 
+        PALETTE_TABLE, rgb333));
     event.addBitmap(BitmapAsset.FontBlack, bmpFontBlack);
 
     event.addBitmap(BitmapAsset.FontOutlines, 
@@ -185,7 +188,7 @@ const generateSamples = (event : ProgramEvent) : void => {
         [160, 12, 1.0,
         192, 6, 0.70,
         256, 4, 0.20], 
-        1.50,
+        1.25,
         OscType.Triangle, 
         Ramp.Exponential);
 
@@ -240,9 +243,19 @@ const generateSamples = (event : ProgramEvent) : void => {
         [160, 2, 1.0,
          96, 1, 0.50   
         ], 
-        0.80,
+        0.60,
         OscType.Sawtooth, 
         Ramp.Exponential);
+
+    for (let i = 0; i < 2; ++ i) {
+
+        event.createSample(SoundEffect.Select + i,
+            [128 - i*8, 8 + i*2, 1.0,
+            96 - i*8, 4, 0.20], 
+            0.30,
+            OscType.Square, 
+            Ramp.Instant);
+    }
 }
 
 

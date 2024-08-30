@@ -32,6 +32,7 @@ const onloadEvent = (event : ProgramEvent) : void => {
     event.addAction(Action.Pause, ["Escape", "Enter"]);
     event.addAction(Action.Restart, ["KeyR"]);
     event.addAction(Action.Undo, ["Backspace", "KeyZ"]);
+    event.addAction(Action.Back, ["Escape"]);
 
     generateAssets(event);
 }

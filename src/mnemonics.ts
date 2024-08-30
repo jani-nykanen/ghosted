@@ -3,8 +3,6 @@
 // Mnemonics for assets and input actions
 
 
-
-
 export const enum Action {
 
     Right = 0,
@@ -15,7 +13,9 @@ export const enum Action {
     Choose = 4,
     Pause = 5,
     Restart = 6,
-    Undo = 7
+    Undo = 7,
+
+    Back = 8,
 };
 
 
@@ -25,8 +25,9 @@ export const enum BitmapAsset {
     RawGameArt = 1,
     GameArt = 2,
     FontWhite = 3,
-    FontBlack = 4,
-    FontOutlines = 5,
+    FontYellow = 4,
+    FontBlack = 5,
+    FontOutlines = 6,
 };
 
 
@@ -43,4 +44,6 @@ export const enum SoundEffect {
     Undo = 8,
     Restart = 9,
     Walk = 10,
+    Select = 11,
+    Pause = 12,
 }

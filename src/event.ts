@@ -46,7 +46,7 @@ export class ProgramEvent {
     // Audio player
     private audioContext : AudioContext | undefined = undefined;
     private globalVolume : number;
-    private enabled : boolean;
+    private audioEnabled : boolean;
 
 
     // Scene manager
@@ -108,7 +108,7 @@ export class ProgramEvent {
         this.samples = new Map<number, Sample> ();
 
         // Audio
-        this.enabled = true;
+        this.audioEnabled = true;
         this.globalVolume = globalVolume;
 
         // Scene manager
@@ -234,7 +234,7 @@ export class ProgramEvent {
 
     public playSample(index : number, volume : number = 0.60) : void {
 
-        if (!this.enabled) {
+        if (!this.audioEnabled) {
 
             return;
         }
@@ -246,13 +246,16 @@ export class ProgramEvent {
     }
 
 
-    public toggleAudio = (state : boolean = !this.enabled) : boolean => (this.enabled = state);
+    public toggleAudio = (state : boolean = !this.audioEnabled) : boolean => (this.audioEnabled = state);
 
 
     public setGlobalVolume(vol : number) : void {
 
         this.globalVolume = vol;
     }
+
+
+    public getAudioString = () : string => "AUDIO: " + (this.audioEnabled ? "ON " : "OFF");
 
 
     //
@@ -277,4 +280,5 @@ export class ProgramEvent {
         scene?.onChange?.(this.activeScene?.dispose?.(), event);
         this.activeScene ??= scene;
     }
+    
 }

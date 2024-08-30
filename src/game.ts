@@ -8,6 +8,7 @@ import { drawWallMap, generateWallMap } from "./wallmap.js";
 import { PuzzleState } from "./puzzlestate.js";
 import { Direction, GameObject, GameObjectType } from "./gameobject.js";
 import { Vector } from "./vector.js";
+import { Menu, MenuButton } from "./menu.js";
 
 
 const BOTTOM_TILE_OBJECTS : number[] = [7];
@@ -54,6 +55,8 @@ export class Game implements Scene {
     private transformTimer : number = 0;
     private animationTimer : number = 0;
 
+    private pauseMenu : Menu;
+
 
     private readonly setEffect : EffectCallback = (type : EffectType, x : number, y : number) => {
 
@@ -72,6 +75,32 @@ export class Game implements Scene {
         this.stateBuffer = new Array<PuzzleState> ();
 
         this.objects = new Array<GameObject> ();
+
+        this.pauseMenu = new Menu(
+        [
+            new MenuButton("RESUME", () => true),
+            new MenuButton("UNDO", (event : ProgramEvent) : boolean => {
+                this.undo(event);
+                return true;
+            }),
+            new MenuButton("RESTART", (event : ProgramEvent) : boolean => {
+
+                this.reset(event);
+                return true;
+            }),
+            new MenuButton("AUDIO: ON", (event : ProgramEvent, button : MenuButton) : boolean => {
+
+                event.toggleAudio();
+                button.text = event.getAudioString();
+                
+                return false;
+            }),
+            new MenuButton("QUIT", (event : ProgramEvent) : boolean => {
+
+                return true;
+            })
+
+        ], false);
     }
 
 
@@ -176,8 +205,6 @@ export class Game implements Scene {
             return;
         }
 
-        event.playSample(SoundEffect.Undo);
-
         this.stateBuffer[this.stateBuffer.length - 2].cloneTo(this.activeState);
         this.stateBuffer.pop();
 
@@ -189,8 +216,6 @@ export class Game implements Scene {
 
         this.activeState = new PuzzleState(undefined, this.baseMap);
         this.resetState();
-
-        event.playSample(SoundEffect.Restart);
 
         this.stateBuffer.push(new PuzzleState(this.activeState));
     }
@@ -485,13 +510,30 @@ export class Game implements Scene {
         const MAX_BUFFER_SIZE : number = 64;
         const MOVE_SPEED : number = 1.0/16.0;
 
+        if (this.pauseMenu.active) {
+
+            this.pauseMenu.update(event, true);
+            return;
+        }
+
+        if (event.getAction(Action.Pause) == InputState.Pressed) {
+
+            event.playSample(SoundEffect.Pause);
+
+            this.pauseMenu.changeMenuText(3, event.getAudioString());
+            this.pauseMenu.activate(0); 
+            return;
+        }
+
         if (event.getAction(Action.Undo) == InputState.Pressed) {
 
+            event.playSample(SoundEffect.Undo);
             this.undo(event);
             return;
         }
         if (event.getAction(Action.Restart) == InputState.Pressed) {
 
+            event.playSample(SoundEffect.Restart);
             this.reset(event);
             return;
         }
@@ -527,7 +569,8 @@ export class Game implements Scene {
         if (!wasPlayerMoving && 
             this.playerRef!.isMoving() && 
             !this.playerRef!.jumping &&
-            !nonPlayerMoved) {
+            !nonPlayerMoved &&
+            this.activeState.turnsLeft > 0) {
 
             event.playSample(SoundEffect.Walk);
         }
@@ -622,6 +665,8 @@ export class Game implements Scene {
 
         canvas.moveTo();
         this.drawHUD(canvas);
+
+        this.pauseMenu.draw(canvas, 0, 0, true);
     }
 
 

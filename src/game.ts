@@ -564,8 +564,8 @@ export class Game implements Scene {
         canvas.clear("#006db6");
         this.drawBackgroundGrid(canvas);
 
-        canvas.drawText(BitmapAsset.FontWhite, "HELLO WORLD!", 2, 2, -1);
-        canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 16, 16);
+        // canvas.drawText(BitmapAsset.FontWhite, "HELLO WORLD!", 2, 2, -1);
+        // canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 16, 16);
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
 
@@ -583,6 +583,9 @@ export class Game implements Scene {
             o.drawShadow(canvas);
         }
         canvas.setAlpha();
+
+        this.playerRef?.drawDust(canvas, this.activeState);
+
         // Objects itself
         for (let o of this.objects) {
 

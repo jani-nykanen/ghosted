@@ -10,6 +10,45 @@ import { EffectCallback, EffectType } from "./game.js";
 const DEATH_TIMER : number = 12;
 
 
+class Dust {
+
+
+    public pos : Vector = new Vector();
+    public timer : number = 0;
+
+
+    public spawn(x : number, y : number) : void {
+
+        this.pos = new Vector(x, y);
+        this.timer = 1.0;
+    }
+
+
+    public update(event : ProgramEvent) : void {
+
+        const VANISH_SPEED : number = 1.0/24.0;
+
+        this.timer = Math.max(0, this.timer -= VANISH_SPEED*event.tick);
+    }
+
+
+    public draw(canvas : Canvas) : void {
+
+        if (this.timer <= 0) {
+
+            return;
+        }
+
+        const frame : number = ((1.0 - this.timer)*3) | 0;
+        canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 
+            this.pos.x - 4, this.pos.y - 4, 
+            24 + frame*8, 72, 8, 8);
+    }
+}
+
+
+
+
 export const enum GameObjectType {
 
     Unknown = 0,
@@ -54,6 +93,9 @@ export class GameObject {
 
     private deathTimer : number = 0;
 
+    private dust : Dust[];
+    private dustTimer : number = 0;
+
     private readonly effectCallback : EffectCallback;
 
     // These are public to save bytes
@@ -69,6 +111,8 @@ export class GameObject {
         this.renderPos = new Vector(x*16, y*16);
 
         this.type = type;
+
+        this.dust = (new Array<Dust> (8)).fill(undefined).map(() => new Dust());
 
         this.effectCallback = effectCallback;
     }
@@ -105,7 +149,6 @@ export class GameObject {
             // TODO: Sound effect!
         }
     }
-
 
 
     private moveTo(activeState : PuzzleState, x : number, y : number, event : ProgramEvent) : boolean {
@@ -153,6 +196,37 @@ export class GameObject {
         }
         this.renderPos.x = ((1.0 - this.moveTimer)*this.pos.x + this.moveTimer*this.target.x)*16;
         this.renderPos.y = ((1.0 - this.moveTimer)*this.pos.y + this.moveTimer*this.target.y)*16;
+    }
+
+
+    private updateDust(activeState : PuzzleState, event : ProgramEvent) : void {
+
+        const DUST_TIME : number = 8;
+
+        if (this.type != GameObjectType.Player || activeState.turnsLeft <= 0) {
+
+            return;
+        }
+
+        for (let o of this.dust) {
+
+            o.update(event);
+        }
+
+        if (!this.jumping && this.moving && (this.dustTimer += event.tick) >= DUST_TIME) {
+
+            this.dustTimer -= DUST_TIME;
+
+            for (let o of this.dust) {
+
+                if (o.timer <= 0) {
+
+                    const dir : Vector = directionToVector(this.direction);
+                    o.spawn(this.renderPos.x + 8 - dir.x*6, this.renderPos.y + 8 - dir.y*4);
+                    break;
+                }
+            }
+        }
     }
 
 
@@ -311,6 +385,7 @@ export class GameObject {
             return;
         }
 
+        this.updateDust(activeState, event);
         this.move(activeState, moveSpeed, event);
         this.animationTimer = (this.animationTimer + ANIMATION_SPEED*event.tick) % 1.0;
     }
@@ -337,6 +412,20 @@ export class GameObject {
         default:
             break;
 
+        }
+    }
+
+
+    public drawDust(canvas : Canvas, activeScene : PuzzleState) : void {
+
+        if (this.type != GameObjectType.Player || activeScene.turnsLeft <= 0) {
+
+            return;
+        }
+
+        for (let o of this.dust) {
+
+            o.draw(canvas);
         }
     }
 

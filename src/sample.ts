@@ -1,11 +1,23 @@
 import { clamp } from "./math.js";
 
 
+const TYPE_LOOKUP : OscillatorType[] = ["square", "triangle", "sawtooth", "sine"];
+
+
 export const enum Ramp {
 
     Instant = 0,
     Linear = 1,
     Exponential = 2
+};
+
+
+export const enum OscType {
+
+    Square = 0,
+    Triangle = 1,
+    Sawtooth = 2,
+    Sine = 3,
 };
 
 
@@ -16,7 +28,7 @@ export class Sample {
 
     private baseSequence : number[];
     private baseVolume : number;
-    private type : OscillatorType;
+    private type : OscType;
     private ramp : Ramp;
     private attack : number = 0.0;
 
@@ -24,7 +36,7 @@ export class Sample {
 
 
     constructor(ctx : AudioContext, sequence : number[], 
-        baseVolume : number, type : OscillatorType,
+        baseVolume : number, type : OscType,
         ramp : Ramp, attack : number = 1.0) {
 
         this.ctx = ctx;
@@ -47,7 +59,7 @@ export class Sample {
         const gain : GainNode = this.ctx.createGain();
         const func : string = functions[this.ramp];
         
-        osc.type = this.type;
+        osc.type = TYPE_LOOKUP[this.type] ?? "square";
 
         volume *= this.baseVolume;
 

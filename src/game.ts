@@ -1,6 +1,6 @@
 import { Align, Canvas, Flip } from "./canvas.js";
 import { InputState, ProgramEvent } from "./event.js";
-import { Action, BitmapAsset } from "./mnemonics.js";
+import { Action, BitmapAsset, SoundEffect } from "./mnemonics.js";
 import { Scene, SceneParameter } from "./scene.js";
 import { Tilemap } from "./tilemap.js";
 import { LEVEL_DATA } from "./leveldata.js";
@@ -196,7 +196,8 @@ export class Game implements Scene {
 
         const GRID_SIZE : number = 32;
 
-        canvas.setColor("#2492ff");
+        canvas.clear("#4992db");
+        canvas.setColor("#246db6");
 
         const loopx : number = (((canvas.width/GRID_SIZE + 1)/2) | 0) + 1;
         const loopy : number = (((canvas.height/GRID_SIZE + 1)/2) | 0) + 1;
@@ -382,6 +383,9 @@ export class Game implements Scene {
 
         const DISAPPEAR_MOVE_DISTANCE : number = 8;
 
+        // Stage number
+        canvas.drawText(BitmapAsset.FontOutlines, "STAGE 1", canvas.width/2, canvas.height - 19, -8, 0, Align.Center);
+
         if (((this.transformTimer/4) | 0) % 2 != 0) {
 
             return;
@@ -524,6 +528,7 @@ export class Game implements Scene {
             if (this.activeState.turnsLeft == 1) {
 
                 this.transformTimer = GHOST_TRANSFORM_TIMER;
+                event.playSample(SoundEffect.Transform);
             }
 
             const oldMoveCount : number = this.activeState.turnsLeft;
@@ -561,7 +566,6 @@ export class Game implements Scene {
 
     public redraw(canvas : Canvas) : void {
         
-        canvas.clear("#006db6");
         this.drawBackgroundGrid(canvas);
 
         // canvas.drawText(BitmapAsset.FontWhite, "HELLO WORLD!", 2, 2, -1);

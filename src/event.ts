@@ -1,5 +1,5 @@
 import { Canvas, Bitmap } from "./canvas.js";
-import { Ramp, Sample } from "./sample.js";
+import { OscType, Ramp, Sample } from "./sample.js";
 import { Scene } from "./scene.js";
 
 
@@ -224,7 +224,7 @@ export class ProgramEvent {
     public createSample(index : number,
         sequence : number[], 
         baseVolume : number = 1.0,
-        type : OscillatorType = "square",
+        type : OscType = OscType.Square,
         ramp : Ramp = Ramp.Exponential,
         attackTime : number = 0.40) : void {
 

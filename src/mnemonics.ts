@@ -28,3 +28,16 @@ export const enum BitmapAsset {
     FontBlack = 4,
     FontOutlines = 5,
 };
+
+
+export const enum SoundEffect {
+
+    PushBoulder = 0,
+    FallingBoulder = 1,
+    Splash = 2,
+    SpreadingHole = 3,
+    EmergingSlime = 4,
+    Coin = 5,
+    Jump = 6,
+    Transform = 7,
+}

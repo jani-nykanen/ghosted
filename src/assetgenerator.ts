@@ -1,8 +1,8 @@
 import { applyPalette, createBigText, createCustomBitmap, cropBitmap } from "./bitmapgenerator.js";
 import { Bitmap, Canvas } from "./canvas.js";
-import { Ramp } from "./sample.js";
+import { OscType, Ramp } from "./sample.js";
 import { ProgramEvent } from "./event.js";
-import { BitmapAsset } from "./mnemonics.js";
+import { BitmapAsset, SoundEffect } from "./mnemonics.js";
 
 
 
@@ -90,7 +90,6 @@ const generatePaletteLookup = () : PaletteLookup => {
 }
 
 
-
 const generateGameArt = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
 
     const bmpGameArtBase : Bitmap = applyPalette(event.getBitmap(BitmapAsset.RawGameArt), 
@@ -112,7 +111,6 @@ const generateGameArt = (rgb333 : PaletteLookup, event : ProgramEvent) : void =>
                 ctx.drawImage(bmpGameArtBase, 0, 0);
             }));
 }
-
 
 
 const generateFonts = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
@@ -158,6 +156,74 @@ const generateFonts = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
 }
 
 
+const generateSamples = (event : ProgramEvent) : void => {
+
+    event.createSample(SoundEffect.PushBoulder,
+        [96, 5, 1.0,
+         80, 3, 0.20], 
+        0.80,
+        OscType.Sawtooth, 
+        Ramp.Exponential);
+
+    event.createSample(SoundEffect.FallingBoulder,
+        [256, 4, 1.0,
+        192, 6, 0.70,
+        160, 12, 0.20], 
+        1.25,
+        OscType.Triangle, 
+        Ramp.Exponential);
+
+    event.createSample(SoundEffect.Splash,
+        [96, 3, 0.60,
+         128, 5, 1.0,
+         160, 8, 0.20], 
+        0.50,
+        OscType.Square, 
+        Ramp.Exponential);
+
+    event.createSample(SoundEffect.SpreadingHole,
+        [160, 12, 1.0,
+        192, 6, 0.70,
+        256, 4, 0.20], 
+        1.50,
+        OscType.Triangle, 
+        Ramp.Exponential);
+
+    event.createSample(SoundEffect.EmergingSlime,
+        [224, 2, 0.70,
+         160, 3, 1.0,
+         144, 6, 0.20], 
+        1.40,
+        OscType.Triangle, 
+        Ramp.Exponential);
+        
+    event.createSample(SoundEffect.Coin,
+        [160, 4, 0.60,
+         100, 2, 0.80,
+         256, 8, 1.00],
+        0.40,
+        OscType.Square, 
+        Ramp.Instant);
+
+    event.createSample(SoundEffect.Jump,
+        [64,  4, 0.20,
+        160, 3, 0.80,
+        256, 2, 0.50], 
+        0.80,
+        OscType.Sawtooth, 
+        Ramp.Exponential);
+
+    event.createSample(SoundEffect.Transform,
+        [96, 3, 0.50,
+         128, 4, 0.75,
+         192, 6, 1.00,
+         256, 8, 0.60,],
+        0.40,
+        OscType.Square, 
+        Ramp.Exponential);
+}
+
+
 // Hmm, generating assets from event...
 export const generateAssets = (event : ProgramEvent) : void => {
 
@@ -166,4 +232,7 @@ export const generateAssets = (event : ProgramEvent) : void => {
     // Bitmaps
     generateGameArt(rgb333, event);
     generateFonts(rgb333, event);
+    
+    // Samples
+    generateSamples(event);
 }

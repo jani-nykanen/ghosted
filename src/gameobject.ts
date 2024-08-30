@@ -1,6 +1,6 @@
 import { Vector } from "./vector.js";
 import { Canvas, Flip } from "./canvas.js";
-import { BitmapAsset } from "./mnemonics.js";
+import { BitmapAsset, SoundEffect } from "./mnemonics.js";
 import { InputState, ProgramEvent } from "./event.js";
 import { PuzzleState } from "./puzzlestate.js";
 import { EffectCallback, EffectType } from "./game.js";
@@ -136,8 +136,7 @@ export class GameObject {
             activeState.setTile(0, this.pos.x, this.pos.y, 4);
 
             this.effectCallback(EffectType.SpreadingHole, this.pos.x, this.pos.y);
-
-            // TODO: Sound effect!
+            event.playSample(SoundEffect.SpreadingHole);
         }
 
         // Slime
@@ -146,7 +145,7 @@ export class GameObject {
             activeState.setTile(0, this.pos.x, this.pos.y, 6);
 
             this.effectCallback(EffectType.EmergingSlime, this.pos.x, this.pos.y);
-            // TODO: Sound effect!
+            event.playSample(SoundEffect.EmergingSlime);
         }
     }
 
@@ -174,9 +173,14 @@ export class GameObject {
             (activeState.getTile(0, x, y) == 6)) {
 
             this.jumping = true;
-            // TODO: Sound effect
+            event.playSample(SoundEffect.Jump);
         }
         
+        if (this.type == GameObjectType.Rock) {
+
+            event.playSample(SoundEffect.PushBoulder, 0.60);
+        }
+
         return true;
     }
 
@@ -439,9 +443,9 @@ export class GameObject {
 
                 const t : number = 1.0 - this.deathTimer/DEATH_TIMER;
                 canvas.setColor("#ff9200");
-                canvas.fillRing(this.renderPos.x + 8, this.renderPos.y + 9, t*8, 2 + t*10);
+                canvas.fillRing(this.renderPos.x + 8, this.renderPos.y + 9, t*9, 2 + t*10);
                 canvas.setColor("#ffff49");
-                canvas.fillRing(this.renderPos.x + 7, this.renderPos.y + 8, t*9, 2 + t*10);
+                canvas.fillRing(this.renderPos.x + 7, this.renderPos.y + 8, t*10, 2 + t*10);
             }
             return;
         }
@@ -517,7 +521,7 @@ export class GameObject {
 
             this.effectCallback(EffectType.ShrinkingHole, this.pos.x, this.pos.y);
 
-            // TODO: Sound effect!
+            event.playSample(SoundEffect.FallingBoulder, 0.60);
         }
 
         // Slime
@@ -526,7 +530,7 @@ export class GameObject {
             activeScene.setTile(0, this.pos.x, this.pos.y, 0);
             this.effectCallback(EffectType.SplashingSlime, this.pos.x, this.pos.y);
 
-            // TODO: Sound effect!
+            event.playSample(SoundEffect.Splash);
         }
 
         // Coin
@@ -534,7 +538,7 @@ export class GameObject {
 
             activeScene.setTile(0, this.pos.x, this.pos.y, 0);
 
-            // TODO: Sound effect!
+            event.playSample(SoundEffect.Coin);
 
             // Send a signal that the tiles should be checked again
             return true;

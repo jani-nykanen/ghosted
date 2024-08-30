@@ -52,6 +52,7 @@ export class Game implements Scene {
     private blockingEffect : boolean = true;
 
     private transformTimer : number = 0;
+    private animationTimer : number = 0;
 
 
     private readonly setEffect : EffectCallback = (type : EffectType, x : number, y : number) => {
@@ -379,15 +380,46 @@ export class Game implements Scene {
 
     private drawHUD(canvas : Canvas) : void {
 
+        const DISAPPEAR_MOVE_DISTANCE : number = 8;
+
         if (((this.transformTimer/4) | 0) % 2 != 0) {
 
             return;
         }
 
-        canvas.drawText(BitmapAsset.FontOutlines, "#",
-            canvas.width/2 - 18, 2);
+        const dx : number = canvas.width/2 + 4;
+        const dy : number = 2;
+
+        if (this.activeState.turnsLeft <= 0) {
+
+            canvas.drawText(BitmapAsset.FontOutlines, "SPOOKY!",
+                dx, dy, -8, 0, Align.Center);
+            return;
+        }
+
+        canvas.drawText(BitmapAsset.FontOutlines, "#", dx - 22, dy);
+            
+        if (this.animationTimer <= 0.0) {
+
+            canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState.turnsLeft),
+                dx, dy, -8, 0, Align.Center);
+            return;
+        }
+
+        const t : number = 1.0 - this.animationTimer;
+
+        // Old time
+        canvas.setAlpha(this.animationTimer);
         canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState.turnsLeft),
-            canvas.width/2 + 4, 2, -8, 0, Align.Center);
+            dx, dy + t*DISAPPEAR_MOVE_DISTANCE, -8, 0, Align.Center);
+
+        canvas.setAlpha(t);
+
+        // New time
+        canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState.turnsLeft - 1),
+            dx, dy - this.animationTimer*DISAPPEAR_MOVE_DISTANCE, -8, 0, Align.Center);
+
+        canvas.setAlpha();
     }
 
 
@@ -467,6 +499,10 @@ export class Game implements Scene {
 
                     anyMoved = o.control(this.activeState, event) || anyMoved;
                 }
+                if (anyMoved) {
+
+                    this.animationTimer = 1.0;
+                }
             }
             while (anyMoved);
         }
@@ -481,6 +517,7 @@ export class Game implements Scene {
 
         if (wasMoving && !this.isMoving) {
 
+            this.animationTimer = 0.0;
             this.checkUnderlyingTiles(event);
 
             // Turn into a ghost
@@ -513,6 +550,11 @@ export class Game implements Scene {
         if (this.transformTimer > 0) {
 
             this.transformTimer -= event.tick;
+        }
+
+        if (this.animationTimer > 0) {
+
+            this.animationTimer -= MOVE_SPEED*event.tick;
         }
     }
 

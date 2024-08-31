@@ -60,13 +60,15 @@ def parse_file(path : str) -> str:
 os.chdir(sys.path[0])
 out = "["
 ignoreComma = True
-for file in os.listdir("."):
+for file in sorted(os.listdir(".")):
 
     if not file.endswith(".tmx"):
         continue
 
     if not ignoreComma:
         out += ","
+
+    ignoreComma = False
 
     if os.path.isfile(file):
         out += parse_file(file)

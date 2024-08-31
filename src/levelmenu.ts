@@ -1,4 +1,4 @@
-import { Align, Canvas } from "./canvas.js";
+import { Align, Canvas, Flip } from "./canvas.js";
 import { InputState, ProgramEvent } from "./event.js";
 import { Scene } from "./scene.js";
 import { Action, BitmapAsset, SoundEffect } from "./mnemonics.js";
@@ -8,6 +8,10 @@ import { negMod } from "./math.js";
 
 const HORIZONTAL_BUTTONS : number = 4;
 const VERTICAL_BUTTONS : number = 3;
+
+const BUTTON_COLORS_LIGHT : string[] = ["#000000", "#924900", "#ffb66d", "#db6d00"];
+const BUTTON_SIZE_SHIFT : number[] = [0, 0, 1, 2];
+const BUTTON_POS_SHIFT : number[] = [0, 0, -1, -1];
 
 
 export class LevelMenu implements Scene {
@@ -20,12 +24,50 @@ export class LevelMenu implements Scene {
     private drawButton(canvas : Canvas, num : number,
         x : number, y : number, width : number, height : number) : void {
 
+        const DEPTH : number = 4;
+
         const active : boolean = this.activeButtonNumber == num;
 
-        canvas.fillRect(x, y, width, height, active ? "#929292" : "#b6b6b6");
+        for (let i = 0; i < 4; ++ i) {
 
-        canvas.drawText(active ? BitmapAsset.FontYellow : BitmapAsset.FontWhite, 
-            String(num), x + width/2 + 3, y + height/2 - 4, -1, 0, Align.Center);
+            const dx : number = x + i + BUTTON_POS_SHIFT[i];
+            const w : number = width - i*2 + BUTTON_SIZE_SHIFT[i];
+
+            let dy : number = y + i + BUTTON_POS_SHIFT[i] + DEPTH;
+            let h : number = height - i*2 + BUTTON_SIZE_SHIFT[i];
+            if (!active) {
+
+                dy -= DEPTH;
+                if (i < 2) {
+
+                    h += DEPTH;
+                }
+            }
+
+            canvas.setColor(BUTTON_COLORS_LIGHT[i]);
+
+            canvas.fillRect(dx, dy, w, h);
+        }
+
+        canvas.drawText(BitmapAsset.FontOutlines, String(num), 
+            x + width/2 - 1, y + height/2 - 10 + (active ? DEPTH : 0), -9, 0, Align.Center);
+
+        // Player
+        if (active) {
+
+            canvas.setAlpha(0.25);
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
+                x + width/2 - 8, y + height/2, 
+                16, 56, 16, 8);
+            canvas.setAlpha();
+
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
+                x + width/2 - 8, y + height/2 - 12, 
+                0, 16, 16, 8);
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
+                x + width/2 - 8, y + height/2 - 4, 
+                32, 16, 16, 8);
+        }
 
     }
 

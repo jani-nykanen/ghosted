@@ -11,7 +11,7 @@ import { Vector } from "./vector.js";
 import { Menu, MenuButton } from "./menu.js";
 
 
-const BOTTOM_TILE_OBJECTS : number[] = [7];
+const BOTTOM_TILE_OBJECTS : number[] = [7, 8];
 const TOP_TILE_OBJECTS : number[] = [2, 3];
 
 const GHOST_TRANSFORM_TIMER : number = 24;
@@ -415,7 +415,9 @@ export class Game implements Scene {
         const DISAPPEAR_MOVE_DISTANCE : number = 8;
 
         // Stage number
-        canvas.drawText(BitmapAsset.FontOutlines, "STAGE 1", canvas.width/2, canvas.height - 19, -8, 0, Align.Center);
+        canvas.drawText(BitmapAsset.FontOutlines, 
+            "STAGE " + String(this.levelIndex), 
+            canvas.width/2, canvas.height - 19, -8, 0, Align.Center);
 
         if (((this.transformTimer/4) | 0) % 2 != 0) {
 
@@ -619,6 +621,13 @@ export class Game implements Scene {
             if (this.stateBuffer.length >= MAX_BUFFER_SIZE) {
 
                 this.stateBuffer.shift();
+            }
+
+            // Transforming back to human
+            if (this.activeState.turnsLeft == 13) {
+
+                this.transformTimer = GHOST_TRANSFORM_TIMER;
+                event.playSample(SoundEffect.Transform);
             }
         }
 

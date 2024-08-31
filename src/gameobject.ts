@@ -53,12 +53,13 @@ export const enum GameObjectType {
 
     Unknown = 0,
 
-    // Bottom layer
+    // Top layer
     Player = 2,
     Rock = 3,
 
-    // Top layer
+    // Bottom layer
     Coin = 7,
+    Apple = 8
 }
 
 
@@ -84,7 +85,7 @@ export class GameObject {
     private moving : boolean = false;
     private target : Vector;
 
-    private direction : Direction = Direction.None;
+    private direction : Direction = Direction.Down;
 
     private active : boolean = true;
     
@@ -341,6 +342,28 @@ export class GameObject {
     }
 
 
+    private drawApple(canvas : Canvas, activeState : PuzzleState) : void {
+
+        if (activeState.turnsLeft > 0) {
+
+            canvas.setAlpha(0.33);
+        }
+
+        const shifty : number = Math.round(
+            Math.sin(this.animationTimer*Math.PI*2 + Number(this.pos.x % 2 == this.pos.y % 2)*Math.PI));
+        const dy : number = this.renderPos.y - 5 + shifty;
+
+        // Apple
+        canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
+            this.renderPos.x, dy, 48, 64, 16, 16);
+        // Leaf
+        canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
+            this.renderPos.x, dy, 48, 80, 16, 8);
+
+        canvas.setAlpha();
+    }
+
+
     public control(activeState : PuzzleState, event : ProgramEvent) : boolean {
 
         if (!this.active || this.moving) {
@@ -414,6 +437,7 @@ export class GameObject {
             // break;
         // Fallthrough
         case GameObjectType.Coin:
+        case GameObjectType.Apple:
 
             canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, this.renderPos.x, this.renderPos.y + 6, 16, 56, 16, 8);
             break;
@@ -425,9 +449,9 @@ export class GameObject {
     }
 
 
-    public drawDust(canvas : Canvas, activeScene : PuzzleState) : void {
+    public drawDust(canvas : Canvas, activeState : PuzzleState) : void {
 
-        if (this.type != GameObjectType.Player || activeScene.turnsLeft <= 0) {
+        if (this.type != GameObjectType.Player || activeState.turnsLeft <= 0) {
 
             return;
         }
@@ -474,6 +498,11 @@ export class GameObject {
             this.drawCoin(canvas, activeState);
             break;
 
+        case GameObjectType.Apple:
+
+            this.drawApple(canvas, activeState);
+            break;
+
         default:
             break;
         }
@@ -508,21 +537,21 @@ export class GameObject {
     }
 
 
-    public checkUnderlyingTiles(activeScene : PuzzleState, event : ProgramEvent) : boolean {
+    public checkUnderlyingTiles(activeState : PuzzleState, event : ProgramEvent) : boolean {
 
         if (!this.active) {
 
             return false;
         }
 
-        const bottomTile : number = activeScene.getTile(0, this.pos.x, this.pos.y);
+        const bottomTile : number = activeState.getTile(0, this.pos.x, this.pos.y);
 
         // Hole
         if (this.type == GameObjectType.Rock && bottomTile == 4) {
 
             this.active = false;
-            activeScene.setTile(0, this.pos.x, this.pos.y, 0);
-            activeScene.setTile(1, this.pos.x, this.pos.y, 0);
+            activeState.setTile(0, this.pos.x, this.pos.y, 0);
+            activeState.setTile(1, this.pos.x, this.pos.y, 0);
 
             this.effectCallback(EffectType.ShrinkingHole, this.pos.x, this.pos.y);
 
@@ -530,18 +559,18 @@ export class GameObject {
         }
 
         // Slime
-        if (this.type == GameObjectType.Player && activeScene.turnsLeft > 0 && bottomTile == 6) {
+        if (this.type == GameObjectType.Player && activeState.turnsLeft > 0 && bottomTile == 6) {
 
-            activeScene.setTile(0, this.pos.x, this.pos.y, 0);
+            activeState.setTile(0, this.pos.x, this.pos.y, 0);
             this.effectCallback(EffectType.SplashingSlime, this.pos.x, this.pos.y);
 
             event.playSample(SoundEffect.Splash);
         }
 
         // Coin
-        if (this.type == GameObjectType.Player && activeScene.turnsLeft <= 0 && bottomTile == 7) {
+        if (this.type == GameObjectType.Player && activeState.turnsLeft <= 0 && bottomTile == 7) {
 
-            activeScene.setTile(0, this.pos.x, this.pos.y, 0);
+            activeState.setTile(0, this.pos.x, this.pos.y, 0);
 
             event.playSample(SoundEffect.Coin);
 
@@ -550,11 +579,25 @@ export class GameObject {
         }
 
         // Vanishing coin
-        if (this.type == GameObjectType.Coin && bottomTile != 7) {
+        if ((this.type == GameObjectType.Coin || this.type == GameObjectType.Apple) && 
+            bottomTile != this.type ) {
 
             this.renderPos.y -= 1; // To avoid getting sorted in front of the player
             this.active = false;
             this.deathTimer = DEATH_TIMER;
+        }
+
+        // Apple
+        if (this.type == GameObjectType.Player && activeState.turnsLeft <= 0 && bottomTile == 8) {
+
+            activeState.setTile(0, this.pos.x, this.pos.y, 0);
+
+            event.playSample(SoundEffect.Coin);
+
+            activeState.turnsLeft = 14;
+
+            // Send a signal that the tiles should be checked again
+            return true;
         }
 
         return false;

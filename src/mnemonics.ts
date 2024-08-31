@@ -42,6 +42,7 @@ export const enum SoundEffect {
     Jump = 6,
     Transform = 7,
     Undo = 8,
+    Choose = 8, // Same as above
     Restart = 9,
     Walk = 10,
     Select = 11,

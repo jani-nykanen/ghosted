@@ -263,9 +263,9 @@ export class ProgramEvent {
     //
 
 
-    public addScene(name : string, scene : Scene, makeActive : boolean = true) : void {
+    public addScene(name : string, scene : Scene, makeActive : boolean = false) : void {
 
-        this.scenes[name] = scene;
+        this.scenes.set(name, scene);
         if (this.activeScene === undefined || makeActive) {
 
             this.activeScene = scene;
@@ -275,10 +275,10 @@ export class ProgramEvent {
 
     public changeScene(newScene : string, event : ProgramEvent) : void {
 
-        const scene : Scene | undefined = this.scenes[newScene];
+        const scene : Scene | undefined = this.scenes.get(newScene);
 
         scene?.onChange?.(this.activeScene?.dispose?.(), event);
-        this.activeScene ??= scene;
+        this.activeScene = scene ?? this.activeScene;
     }
     
 }

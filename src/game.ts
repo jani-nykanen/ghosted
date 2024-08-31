@@ -1,7 +1,7 @@
 import { Align, Canvas, Flip } from "./canvas.js";
 import { InputState, ProgramEvent } from "./event.js";
 import { Action, BitmapAsset, SoundEffect } from "./mnemonics.js";
-import { Scene, SceneParameter } from "./scene.js";
+import { Scene } from "./scene.js";
 import { Tilemap } from "./tilemap.js";
 import { LEVEL_DATA } from "./leveldata.js";
 import { drawWallMap, generateWallMap } from "./wallmap.js";
@@ -57,6 +57,8 @@ export class Game implements Scene {
 
     private pauseMenu : Menu;
 
+    private levelIndex : number = 0;
+
 
     private readonly setEffect : EffectCallback = (type : EffectType, x : number, y : number) => {
 
@@ -73,7 +75,6 @@ export class Game implements Scene {
     constructor() {
 
         this.stateBuffer = new Array<PuzzleState> ();
-
         this.objects = new Array<GameObject> ();
 
         this.pauseMenu = new Menu(
@@ -97,6 +98,7 @@ export class Game implements Scene {
             }),
             new MenuButton("QUIT", (event : ProgramEvent) : boolean => {
 
+                event.changeScene("ls", event);
                 return true;
             })
 
@@ -487,21 +489,29 @@ export class Game implements Scene {
     }
 
 
-    public onChange(param : SceneParameter, event : ProgramEvent) : void {
+    public onChange(param : number | undefined, event : ProgramEvent) : void {
 
-        // TODO: Get the level index from param?
+        this.levelIndex = param ?? 1;
 
-        this.baseMap = new Tilemap(LEVEL_DATA[0]);
+        this.baseMap = new Tilemap(LEVEL_DATA[this.levelIndex - 1]);
         [this.wallMap, this.shadowMap] = generateWallMap(this.baseMap);
 
         this.width = this.baseMap.width;
         this.height = this.baseMap.height;
+
+        this.stateBuffer.length = 0;
+        this.objects.length = 0;
 
         this.stateBuffer.push(new PuzzleState(undefined, this.baseMap));
         this.activeState = new PuzzleState(this.stateBuffer[0]);
         
         this.objects.length = 0;
         this.parseInitialObject();
+
+        this.isMoving = false;
+        this.transformTimer = 0;
+        this.effectTimer = 0;
+        this.animationTimer = 0;
     }
 
 
@@ -670,7 +680,7 @@ export class Game implements Scene {
     }
 
 
-    public dispose() : SceneParameter {
+    public dispose() : number | undefined {
         
         return undefined;
     }

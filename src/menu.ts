@@ -80,7 +80,7 @@ export class Menu {
 
         if (canQuit && event.getAction(Action.Back) == InputState.Pressed) {
             
-            event.playSample(SoundEffect.Undo);
+            event.playSample(SoundEffect.Pause);
             this.active = false;
             return;
         }

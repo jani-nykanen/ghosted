@@ -331,6 +331,19 @@ export class Game implements Scene {
                     canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, 32, 48, 16, 16);
                     break;
 
+                // Button
+                case 9:
+                case 10:
+                    canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, (tileID - 9)*16, 80, 16, 16);
+                    break;
+
+                // Pink block
+                case 11:
+                case 12:
+
+                    canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, 32 + (tileID - 11)*16, 80, 16, 16);
+                    break;
+
                 default:
                     break;
                 }
@@ -652,7 +665,6 @@ export class Game implements Scene {
         
         this.drawBackgroundGrid(canvas);
 
-        // canvas.drawText(BitmapAsset.FontWhite, "HELLO WORLD!", 2, 2, -1);
         // canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 16, 16);
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);

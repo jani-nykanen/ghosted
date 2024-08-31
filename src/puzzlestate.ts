@@ -1,8 +1,12 @@
 import { Tilemap } from "./tilemap.js";
 
 
-const BOTTOM_LAYER_TILES : number[] = [1, 4, 5, 6, 7, 8];
+// TODO: Bottom tiles is just a complement of the top tiles, minus 0?
+const BOTTOM_LAYER_TILES : number[] = [1, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const TOP_LAYER_TILES : number[] = [2, 3];
+
+const ALWAYS_SOLID_TILES : number[] = [1, 11];
+const ROCK_SOLIDS : number[] = [6, 9];
 
 
 export class PuzzleState {
@@ -84,9 +88,9 @@ export class PuzzleState {
         // TODO: All the other missing checks
         // TODO 2: Use a table
         return topTile != 0 ||  
-            bottom == 1 ||
             (!ignoreSpecialTiles && bottom == 4) ||
-            (ignoreSpecialTiles && bottom == 6)
+            (ignoreSpecialTiles && ROCK_SOLIDS.includes(bottom)) ||
+            ALWAYS_SOLID_TILES.includes(bottom);
     }
 
 
@@ -98,5 +102,27 @@ export class PuzzleState {
             return;
         }
         this.layers[layer][y*this.width + x] = (newValue & 31) | (mask << 5);
+    }
+
+
+    public swapBottomLayerTile(v1 : number, v2 : number) : void {
+
+        for (let i = 0; i < this.layers[0].length; ++ i) {
+
+            if (this.layers[1][i] != 0) {
+
+                continue;
+            }
+
+            const v : number = this.layers[0][i];
+            if (v == v1) {
+
+                this.layers[0][i] = v2;
+            }
+            else if (v == v2) {
+
+                this.layers[0][i] = v1;
+            }
+        }
     }
 }

@@ -6,7 +6,7 @@ import { PuzzleState } from "./puzzlestate.js";
 import { EffectCallback, EffectType } from "./game.js";
 
 
-
+const JUMPING_TILES : number[] = [6, 9];
 const DEATH_TIMER : number = 12;
 
 
@@ -170,8 +170,8 @@ export class GameObject {
 
         // Check if jumping to objects
         this.jumping = false;
-        if (this.type == GameObjectType.Player &&
-            (activeState.getTile(0, x, y) == 6)) {
+        if (this.type == GameObjectType.Player && 
+            JUMPING_TILES.includes(activeState.getTile(0, x, y))) {
 
             this.jumping = true;
             event.playSample(SoundEffect.Jump);
@@ -262,7 +262,7 @@ export class GameObject {
                 Flip.None,
                 this.renderPos.x + 4 + FACE_OFF_X[this.direction - 1], 
                 dy + FACE_OFF_Y[this.direction - 1] + 5,
-                16 + shiftx, 48, sw, 8);
+                16 + shiftx, 40, sw, 8);
         }
     }
 
@@ -358,7 +358,7 @@ export class GameObject {
             this.renderPos.x, dy, 48, 64, 16, 16);
         // Leaf
         canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
-            this.renderPos.x, dy, 48, 80, 16, 8);
+            this.renderPos.x, dy, 16, 48, 16, 8);
 
         canvas.setAlpha();
     }
@@ -558,11 +558,20 @@ export class GameObject {
             event.playSample(SoundEffect.FallingBoulder, 0.60);
         }
 
-        // Slime
-        if (this.type == GameObjectType.Player && activeState.turnsLeft > 0 && bottomTile == 6) {
+        // Slime & button
+        if (this.type == GameObjectType.Player && activeState.turnsLeft > 0 && 
+            (bottomTile == 6 || bottomTile == 9)) {
 
-            activeState.setTile(0, this.pos.x, this.pos.y, 0);
-            this.effectCallback(EffectType.SplashingSlime, this.pos.x, this.pos.y);
+            activeState.setTile(0, this.pos.x, this.pos.y, bottomTile == 6 ? 0 : 10);
+
+            if (bottomTile == 6) {
+
+                this.effectCallback(EffectType.SplashingSlime, this.pos.x, this.pos.y);
+            }
+            else {
+
+                activeState.swapBottomLayerTile(11, 12);
+            }
 
             event.playSample(SoundEffect.Splash);
         }

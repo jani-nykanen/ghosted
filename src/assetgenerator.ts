@@ -53,6 +53,10 @@ const PALETTE_TABLE : number[] = [
     0b101010011, // J Darker pink
     0b111100101, // K Pink
     0b111110110, // L Bright pink
+
+    // Arrows
+    0b001011101, // M Dark blue
+    0b101111111, // N Bright blue
 ];
 
 
@@ -70,6 +74,7 @@ const GAME_ART_PALETTE_TABLE : string[] = [
     "10HG", "10HG", "10HG", "4052", "4052", "4052", "10EH", "10EH",
     "10LK", "10LK", "10KJ", "10KJ", "10KL", "10KJ", "J000", "J000",
     "10JK", "10JK", "100J", "100J", "10KL", "10KJ", "J000", "J000",
+    "10IN", "10IN", "10MI", "10MI", "0000", "0000", "0000", "0000",
 ];
 
 

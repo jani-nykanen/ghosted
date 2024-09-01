@@ -2,7 +2,7 @@ import { Tilemap } from "./tilemap.js";
 
 
 // TODO: Bottom tiles is just a complement of the top tiles, minus 0?
-const BOTTOM_LAYER_TILES : number[] = [1, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const BOTTOM_LAYER_TILES : number[] = [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 const TOP_LAYER_TILES : number[] = [2, 3];
 
 const ALWAYS_SOLID_TILES : number[] = [1, 11];

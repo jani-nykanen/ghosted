@@ -82,7 +82,6 @@ export class GameObject {
 
 
     private moveTimer : number = 0;
-    private moving : boolean = false;
     private target : Vector;
 
     private direction : Direction = Direction.Down;
@@ -101,8 +100,10 @@ export class GameObject {
     // These are public to save bytes
     public type : GameObjectType;
     public pos : Vector;
+    public moving : boolean = false;
     public renderPos : Vector;
     public jumping : boolean = false;
+    public automaticallyMoving : boolean = false;
 
 
     constructor(type : GameObjectType, x : number, y : number, effectCallback : EffectCallback) {
@@ -116,6 +117,23 @@ export class GameObject {
         this.dust = (new Array<Dust> (8)).fill(undefined).map(() => new Dust());
 
         this.effectCallback = effectCallback;
+    }
+
+
+    private checkArrowTiles(activeState : PuzzleState) : Direction {
+
+        if (this.type == GameObjectType.Player && activeState.turnsLeft <= 0) {
+
+            return Direction.None;
+        }
+
+        const tile : number = activeState.getTile(0, this.pos.x, this.pos.y);
+
+        if (tile >= 13 && tile <= 16) {
+
+            return (1 + (tile - 13)) as Direction;
+        }
+        return Direction.None;
     }
 
 
@@ -223,7 +241,8 @@ export class GameObject {
             o.update(event);
         }
 
-        if (!this.jumping && this.moving && (this.dustTimer += event.tick) >= DUST_TIME) {
+        if (!this.automaticallyMoving && !this.jumping && 
+            this.moving && (this.dustTimer += event.tick) >= DUST_TIME) {
 
             this.dustTimer -= DUST_TIME;
 
@@ -278,8 +297,12 @@ export class GameObject {
         const HORIZONTAL_BODY_FRAME_LOOKUP : number[] = [0, 1, 0, 2];
 
         let dy : number = this.renderPos.y - 6;
-        let frame : number = ((this.moveTimer*2) | 0) + Number(this.pos.x % 2 == this.pos.y % 2)*2;;
-        if (this.moving && this.jumping) {
+        let frame : number = ((this.moveTimer*2) | 0) + Number(this.pos.x % 2 == this.pos.y % 2)*2;
+        if (this.automaticallyMoving) {
+
+            frame = 0;
+        }
+        else if (this.moving && this.jumping) {
 
             dy -= Math.sin(this.moveTimer*Math.PI)*4;
             frame = 3;
@@ -364,7 +387,7 @@ export class GameObject {
     }
 
 
-    public control(activeState : PuzzleState, event : ProgramEvent) : boolean {
+    public control(activeState : PuzzleState, event : ProgramEvent, ignoreAutoMovement : boolean = false) : boolean {
 
         if (!this.active || this.moving) {
 
@@ -377,18 +400,23 @@ export class GameObject {
             return false;
         }
 
-        let direction : Direction = Direction.None;
-        for (let i = 0; i < 4; ++ i) {
+        let direction : Direction = ignoreAutoMovement ? Direction.None : this.checkArrowTiles(activeState);
+        this.automaticallyMoving = direction != Direction.None;
+        if (!this.automaticallyMoving) {
 
-            if ((event.getAction(i) & InputState.DownOrPressed) != 0) {
+            for (let i = 0; i < 4; ++ i) {
 
-                direction = (i + 1) as Direction;
-                break;
+                if ((event.getAction(i) & InputState.DownOrPressed) != 0) {
+
+                    direction = (i + 1) as Direction;
+                    break;
+                }
             }
         }
 
         const dir : Vector = directionToVector(direction);
-        if (requirePushing && 
+        if (!this.automaticallyMoving &&
+            requirePushing && 
             (activeState.turnsLeft <= 0 ||
             activeState.getTile(1, this.pos.x - dir.x, this.pos.y - dir.y) != GameObjectType.Player)) {
 
@@ -399,8 +427,15 @@ export class GameObject {
 
             // Change the direction even if cannot move
             this.direction = direction;
-            return this.moveTo(activeState, this.pos.x + dir.x, this.pos.y + dir.y, event);
+            const isMoving : boolean = this.moveTo(activeState, this.pos.x + dir.x, this.pos.y + dir.y, event);
+            // Without this the player can get stuck with automatic arrows.
+            if (!isMoving && this.automaticallyMoving && !ignoreAutoMovement) {
+
+                return this.control(activeState, event, true);
+            }
+            return isMoving;
         }
+        return false;
     }
 
 
@@ -614,5 +649,4 @@ export class GameObject {
 
 
     public isAbove = (other : GameObject) : boolean => this.pos.y > other.pos.y;
-    public isMoving = () : boolean => this.moving;
 }

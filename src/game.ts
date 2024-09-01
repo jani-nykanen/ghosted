@@ -54,6 +54,7 @@ export class Game implements Scene {
 
     private transformTimer : number = 0;
     private animationTimer : number = 0;
+    private arrowTimer : number = 0;
 
     private pauseMenu : Menu;
 
@@ -151,8 +152,10 @@ export class Game implements Scene {
 
     private resetState() : void {
 
+        this.isMoving = false;
         this.effectTimer = 0.0;
         this.transformTimer = 0.0;
+        this.transformTimer = 0;
 
         for (let o of this.objects) {
 
@@ -218,6 +221,9 @@ export class Game implements Scene {
 
         this.activeState = new PuzzleState(undefined, this.baseMap);
         this.resetState();
+
+        // Needed for some reason (or not)
+        // this.activeState.turnsLeft = 13;
 
         this.stateBuffer.push(new PuzzleState(this.activeState));
     }
@@ -344,6 +350,27 @@ export class Game implements Scene {
                     canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, 32 + (tileID - 11)*16, 80, 16, 16);
                     break;
 
+                // Arrows
+                case 13:
+                case 14:
+                case 15:
+                case 16: {
+
+                        const odd : number = tileID % 2;
+                        const angle : number = (tileID - 10)*Math.PI/2;
+                        const frame : number = ((this.arrowTimer/0.5) | 0) % 2;
+
+                        for (let i = 0; i < 2; ++ i) {
+
+                            canvas.drawBitmap(BitmapAsset.GameArt, 
+                                (Number(tileID == 15)*2 + Number(tileID == 16)) as Flip, 
+                                dx + odd*(i*8 - 4), 
+                                dy + (1 - odd)*i*8 + odd*4, 
+                                ((i + frame) % 2)*16, 96, 16, 8, 8, 4, angle);
+                        }
+                    }
+                    break;
+
                 default:
                     break;
                 }
@@ -449,7 +476,9 @@ export class Game implements Scene {
 
         canvas.drawText(BitmapAsset.FontOutlines, "#", dx - 22, dy);
             
-        if (this.animationTimer <= 0.0) {
+        if (this.animationTimer <= 0.0 || 
+            !this.playerRef!.moving ||
+            this.playerRef!.automaticallyMoving) {
 
             canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState.turnsLeft),
                 dx, dy, -8, 0, Align.Center);
@@ -534,6 +563,7 @@ export class Game implements Scene {
 
         const MAX_BUFFER_SIZE : number = 64;
         const MOVE_SPEED : number = 1.0/16.0;
+        const ARROW_FLICKER_SPEED : number = 1.0/60.0;
 
         if (this.pauseMenu.active) {
 
@@ -565,7 +595,7 @@ export class Game implements Scene {
 
         let anyMoved : boolean = false;
         let nonPlayerMoved : boolean = false;
-        const wasPlayerMoving : boolean = this.playerRef!.isMoving();
+        const wasPlayerMoving : boolean = this.playerRef!.moving;
 
         if (this.transformTimer <= 0 && 
             (this.effectTimer <= 0.0 || !this.blockingEffect)) {
@@ -592,7 +622,7 @@ export class Game implements Scene {
 
         // Only play walk sound when nothing else moves
         if (!wasPlayerMoving && 
-            this.playerRef!.isMoving() && 
+            this.playerRef!.moving && 
             !this.playerRef!.jumping &&
             !nonPlayerMoved &&
             this.activeState.turnsLeft > 0) {
@@ -601,39 +631,49 @@ export class Game implements Scene {
         }
 
         const wasMoving : boolean = this.isMoving;
-
+ 
         this.isMoving = false;
         for (let o of this.objects) {
 
             o.update(this.activeState, MOVE_SPEED, event);
-            this.isMoving = o.isMoving() || this.isMoving;
+            this.isMoving = o.moving || this.isMoving;
         }
 
+        // End turn
         if (wasMoving && !this.isMoving) {
 
             this.animationTimer = 0.0;
             this.checkUnderlyingTiles(event);
 
+            const oldMoveCount : number = this.activeState.turnsLeft;
+
+            if (wasPlayerMoving &&
+                !this.playerRef!.automaticallyMoving) {
+
+                this.activeState.turnsLeft = Math.max(0, this.activeState.turnsLeft - 1);
+            }
+
             // Turn into a ghost
-            if (this.activeState.turnsLeft == 1) {
+            if (oldMoveCount == 1 && this.activeState.turnsLeft == 0) {
 
                 this.transformTimer = GHOST_TRANSFORM_TIMER;
                 event.playSample(SoundEffect.Transform);
             }
-
-            const oldMoveCount : number = this.activeState.turnsLeft;
-            this.activeState.turnsLeft = Math.max(0, this.activeState.turnsLeft - 1);
-            if (oldMoveCount) {
+            
+            if (oldMoveCount > 0 && this.activeState.turnsLeft == 0) {
 
                 // Do additional check in the case that the player is standing
                 // in the same tile as a collectable item
                 this.checkUnderlyingTiles(event);
             }
 
-            this.stateBuffer.push(new PuzzleState(this.activeState));
-            if (this.stateBuffer.length >= MAX_BUFFER_SIZE) {
+            if (!this.playerRef!.automaticallyMoving) {
 
-                this.stateBuffer.shift();
+                this.stateBuffer.push(new PuzzleState(this.activeState));
+                if (this.stateBuffer.length >= MAX_BUFFER_SIZE) {
+
+                    this.stateBuffer.shift();
+                }
             }
 
             // Transforming back to human
@@ -644,20 +684,20 @@ export class Game implements Scene {
             }
         }
 
+        // Update timers
         if (this.effectTimer > 0) {
 
             this.effectTimer -= MOVE_SPEED*event.tick;
         }
-
         if (this.transformTimer > 0) {
 
             this.transformTimer -= event.tick;
         }
-
         if (this.animationTimer > 0) {
 
             this.animationTimer -= MOVE_SPEED*event.tick;
         }
+        this.arrowTimer = (this.arrowTimer + ARROW_FLICKER_SPEED*event.tick) % 1.0;
     }
 
 

@@ -1,4 +1,4 @@
-import { Align, Canvas, Flip } from "./canvas.js";
+import { Align, Bitmap, Canvas, Flip } from "./canvas.js";
 import { InputState, ProgramEvent } from "./event.js";
 import { Action, BitmapAsset, SoundEffect } from "./mnemonics.js";
 import { Scene } from "./scene.js";
@@ -56,9 +56,14 @@ export class Game implements Scene {
     private animationTimer : number = 0;
     private arrowTimer : number = 0;
 
+    private transitionTimer : number = 0;
+    private fadingIn : boolean = false;
+
     private pauseMenu : Menu;
 
     private levelIndex : number = 0;
+
+    private stageCleared : boolean = false;
 
 
     private readonly setEffect : EffectCallback = (type : EffectType, x : number, y : number) => {
@@ -99,7 +104,9 @@ export class Game implements Scene {
             }),
             new MenuButton("QUIT", (event : ProgramEvent) : boolean => {
 
-                event.changeScene("ls", event);
+                // event.changeScene("ls", event);
+                this.transitionTimer = 1.0;
+                this.fadingIn = true;
                 return true;
             })
 
@@ -539,6 +546,19 @@ export class Game implements Scene {
     }
 
 
+    private drawStageClear(canvas : Canvas) : void {
+
+        canvas.fillRect(0, 0, canvas.width, canvas.height, "rgba(0,0,0,0.50)");
+
+        const bmp : Bitmap = canvas.getBitmap(BitmapAsset.StageClear)!;
+
+        const dx : number = canvas.width/2 - bmp.width/2;
+        const dy : number = canvas.height/2 - bmp.height/2;
+
+        canvas.drawBitmap(BitmapAsset.StageClear, Flip.None, dx, dy);
+    }
+
+
     public onChange(param : number | undefined, event : ProgramEvent) : void {
 
         this.levelIndex = param ?? 1;
@@ -562,6 +582,9 @@ export class Game implements Scene {
         this.transformTimer = 0;
         this.effectTimer = 0;
         this.animationTimer = 0;
+
+        this.transitionTimer = 1.0;
+        this.fadingIn = false;
     }
 
 
@@ -570,6 +593,34 @@ export class Game implements Scene {
         const MAX_BUFFER_SIZE : number = 64;
         const MOVE_SPEED : number = 1.0/16.0;
         const ARROW_FLICKER_SPEED : number = 1.0/60.0;
+        const TRANSITION_SPEED : number = 1.0/30.0;
+
+        if (this.transitionTimer > 0) {
+
+            if ((this.transitionTimer -= TRANSITION_SPEED* event.tick) < 0) {
+
+                if (this.fadingIn) {
+
+                    event.changeScene("ls", event);
+                }
+                this.transitionTimer = 0.0;
+            }
+            return;
+        }
+
+        // Stage cleared screen
+        if (this.stageCleared) {
+
+            if (event.anyPressed) {
+
+                this.fadingIn = true;
+                this.transitionTimer = 1.0;
+                // this.stageCleared = false;
+
+                event.playSample(SoundEffect.Select);
+            }
+            return;
+        }
 
         if (this.pauseMenu.active) {
 
@@ -688,6 +739,8 @@ export class Game implements Scene {
                 this.transformTimer = GHOST_TRANSFORM_TIMER;
                 event.playSample(SoundEffect.Transform);
             }
+
+            this.stageCleared = this.activeState.isStageClear();
         }
 
         // Update timers
@@ -709,9 +762,14 @@ export class Game implements Scene {
 
     public redraw(canvas : Canvas) : void {
         
+        const FADE_STEPS : number = 7;
+
         this.drawBackgroundGrid(canvas);
 
+        // Testing
         // canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 16, 16);
+        // canvas.fillRect(0, 0, 96, 48, "#ffffff");
+        // canvas.drawBitmap(BitmapAsset.StageClear, Flip.None, 0, 0);
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
 
@@ -744,6 +802,21 @@ export class Game implements Scene {
         this.drawHUD(canvas);
 
         this.pauseMenu.draw(canvas, 0, 0, true);
+
+        if (this.stageCleared) {
+
+            this.drawStageClear(canvas);
+        }
+
+        if (this.transitionTimer > 0) {
+
+            let t : number = this.fadingIn ? 1.0 - this.transitionTimer : this.transitionTimer;
+            t = ((t*FADE_STEPS) | 0)/FADE_STEPS;
+
+            canvas.setColor("rgba(0,0,0," + String(t) + ")");
+            canvas.fillRect();
+            canvas.setColor();
+        }
     }
 
 

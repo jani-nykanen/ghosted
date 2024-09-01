@@ -177,6 +177,16 @@ const generateFonts = (rgb333 : PaletteLookup, event : ProgramEvent) : void => {
 }
 
 
+const generateBigText = (event : ProgramEvent) : void => {
+
+    event.addBitmap(BitmapAsset.StageClear,
+        createBigText("STAGE\nCLEAR!", "bold 22px Arial", 96, 48, 20, 3, [
+            [182, 255, 0],
+            [73, 182, 0]
+        ]));
+}
+
+
 const generateSamples = (event : ProgramEvent) : void => {
 
     event.createSample(SoundEffect.PushBoulder,
@@ -285,6 +295,7 @@ export const generateAssets = (event : ProgramEvent) : void => {
     // Bitmaps
     generateGameArt(rgb333, event);
     generateFonts(rgb333, event);
+    generateBigText(event);
     
     // Samples
     generateSamples(event);

@@ -126,4 +126,17 @@ export class PuzzleState {
             }
         }
     }
+
+
+    public isStageClear() : boolean {
+
+        for (let a of this.layers[0]) {
+    
+            if (a == 7) {
+
+                return false;
+            }
+        }
+        return true;
+    }
 }

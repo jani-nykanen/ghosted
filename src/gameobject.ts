@@ -6,7 +6,7 @@ import { PuzzleState } from "./puzzlestate.js";
 import { EffectCallback, EffectType } from "./game.js";
 
 
-const JUMPING_TILES : number[] = [6, 9];
+const JUMPING_TILES : number[] = [6, 9, 17];
 const DEATH_TIMER : number = 12;
 
 
@@ -593,19 +593,24 @@ export class GameObject {
             event.playSample(SoundEffect.FallingBoulder, 0.60);
         }
 
-        // Slime & button
+        // Slime & buttons
         if (this.type == GameObjectType.Player && activeState.turnsLeft > 0 && 
-            (bottomTile == 6 || bottomTile == 9)) {
+            (bottomTile == 6 || bottomTile == 9 || bottomTile == 17)) {
 
-            activeState.setTile(0, this.pos.x, this.pos.y, bottomTile == 6 ? 0 : 10);
+            activeState.setTile(0, this.pos.x, this.pos.y, bottomTile == 6 ? 0 : bottomTile + 1);
 
             if (bottomTile == 6) {
 
                 this.effectCallback(EffectType.SplashingSlime, this.pos.x, this.pos.y);
             }
-            else {
+            else if (bottomTile == 9) {
 
                 activeState.swapBottomLayerTile(11, 12);
+            }
+            else if (bottomTile == 17) {
+
+                activeState.swapBottomLayerTile(13, 15);
+                activeState.swapBottomLayerTile(14, 16);
             }
 
             event.playSample(SoundEffect.Splash);

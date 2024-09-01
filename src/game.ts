@@ -337,7 +337,7 @@ export class Game implements Scene {
                     canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, 32, 48, 16, 16);
                     break;
 
-                // Button
+                // Pink button
                 case 9:
                 case 10:
                     canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, (tileID - 9)*16, 80, 16, 16);
@@ -366,9 +366,15 @@ export class Game implements Scene {
                                 (Number(tileID == 15)*2 + Number(tileID == 16)) as Flip, 
                                 dx + odd*(i*8 - 4), 
                                 dy + (1 - odd)*i*8 + odd*4, 
-                                ((i + frame) % 2)*16, 96, 16, 8, 8, 4, angle);
+                                0, 96 + ((i + frame) % 2)*8, 16, 8, 8, 4, angle);
                         }
                     }
+                    break;
+
+                // Blue button
+                case 17:
+                case 18:
+                    canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, dx, dy, 16 + (tileID - 17)*16, 96, 16, 16);
                     break;
 
                 default:

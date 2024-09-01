@@ -2,11 +2,12 @@ import { Tilemap } from "./tilemap.js";
 
 
 // TODO: Bottom tiles is just a complement of the top tiles, minus 0?
-const BOTTOM_LAYER_TILES : number[] = [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+// TODO 2: Yes, but not helpful here, see constructor below.
+const BOTTOM_LAYER_TILES : number[] = [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 const TOP_LAYER_TILES : number[] = [2, 3];
 
 const ALWAYS_SOLID_TILES : number[] = [1, 11];
-const ROCK_SOLIDS : number[] = [6, 9];
+const ROCK_SOLIDS : number[] = [6, 9, 17];
 
 
 export class PuzzleState {

@@ -457,6 +457,27 @@ export class Canvas {
     }
 
 
+    public drawFunnilyAppearingBitmap(bmpIndex : number,
+        dx : number, dy : number, t : number, amplitude : number, latitude : number, maxOffset : number) : void {
+
+        const bmp : Bitmap = this.getBitmap(bmpIndex);
+        if (bmp === undefined) {
+
+            return;
+        }
+
+        const offset : number = 1 + maxOffset * t;
+        for (let y = 0; y < bmp.height; ++ y) {
+
+            this.ctx.drawImage(bmp, 
+                0, y, bmp.width, 1, 
+                Math.round(dx + Math.sin((Math.PI*2*latitude)/bmp.height*y + t*(Math.PI*latitude))*amplitude*t), 
+                Math.round(dy + y*offset - bmp.height*maxOffset*t/2), 
+                bmp.width, 1);
+        }
+    }
+
+
     public move(dx : number, dy : number = 0.0) : void {
 
         this.translation.x += dx;

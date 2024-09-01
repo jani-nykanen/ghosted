@@ -4,12 +4,15 @@ import { Scene } from "./scene.js";
 import { Action, BitmapAsset, SoundEffect } from "./mnemonics.js";
 import { Vector } from "./vector.js";
 import { negMod } from "./math.js";
+import { drawTransition } from "./transition.js";
 
 
 const HORIZONTAL_BUTTONS : number = 4;
 const VERTICAL_BUTTONS : number = 3;
 
-const BUTTON_COLORS_LIGHT : string[] = ["#000000", "#924900", "#ffb66d", "#db6d00"];
+const BUTTON_COLORS_UNBEATEN: string[] = ["#000000", "#924900", "#ffb66d", "#db6d00"];
+const BUTTON_COLORS_BEATEN: string[] = ["#000000", "#db9200", "#ffffdb", "#ffdb6d"];
+
 const BUTTON_SIZE_SHIFT : number[] = [0, 0, 1, 2];
 const BUTTON_POS_SHIFT : number[] = [0, 0, -1, -1];
 
@@ -18,7 +21,18 @@ export class LevelMenu implements Scene {
 
 
     private cursorPos : Vector = new Vector();
-    private activeButtonNumber : number = 0;
+    private activeButtonNumber : number = 1;
+
+    private transitionTimer : number = 0;
+    private fadingIn : boolean = false;
+
+    private completedLevels : boolean[];
+
+
+    constructor() {
+
+        this.completedLevels = (new Array<boolean> (12)).fill(false);
+    }
 
 
     private drawButton(canvas : Canvas, num : number,
@@ -27,6 +41,7 @@ export class LevelMenu implements Scene {
         const DEPTH : number = 4;
 
         const active : boolean = this.activeButtonNumber == num;
+        const colorArray : string[] = this.completedLevels[num - 1] ? BUTTON_COLORS_BEATEN : BUTTON_COLORS_UNBEATEN;
 
         for (let i = 0; i < 4; ++ i) {
 
@@ -43,10 +58,7 @@ export class LevelMenu implements Scene {
                     h += DEPTH;
                 }
             }
-
-            canvas.setColor(BUTTON_COLORS_LIGHT[i]);
-
-            canvas.fillRect(dx, dy, w, h);
+            canvas.fillRect(dx, dy, w, h, colorArray[i]);
         }
 
         canvas.drawText(BitmapAsset.FontOutlines, String(num), 
@@ -98,18 +110,43 @@ export class LevelMenu implements Scene {
 
 
     public onChange(param : number | undefined, event : ProgramEvent) : void {
-        
+
+        this.fadingIn = false;
+        this.transitionTimer = 1.0;
+
+        if (param === 1) {
+
+            this.completedLevels[this.activeButtonNumber - 1] = true;
+        }
     }
 
 
     public update(event : ProgramEvent) : void {
+
+        const TRANSITION_SPEED : number = 1.0/30.0;
+
+        if (this.transitionTimer > 0) {
+
+            if ((this.transitionTimer -= TRANSITION_SPEED* event.tick) < 0) {
+
+                if (this.fadingIn) {
+
+                    event.changeScene("g", event);
+                }
+                this.transitionTimer = 0.0;
+            }
+            return;
+        }
 
         this.activeButtonNumber = 1 + this.cursorPos.y*HORIZONTAL_BUTTONS + this.cursorPos.x;
 
         if (event.getAction(Action.Choose) == InputState.Pressed) {
 
             event.playSample(SoundEffect.Select);
-            event.changeScene("g", event);
+            // event.changeScene("g", event);
+            this.transitionTimer = 1.0;
+            this.fadingIn = true;
+
             return;
         }
 
@@ -152,6 +189,8 @@ export class LevelMenu implements Scene {
         canvas.drawText(BitmapAsset.FontOutlines, "SELECT LEVEL", canvas.width/2, 2, -8, 0, Align.Center);
 
         this.drawButtons(canvas);
+
+        drawTransition(canvas, this.transitionTimer, this.fadingIn);
     }
 
 

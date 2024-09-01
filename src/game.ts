@@ -9,12 +9,17 @@ import { PuzzleState } from "./puzzlestate.js";
 import { Direction, GameObject, GameObjectType } from "./gameobject.js";
 import { Vector } from "./vector.js";
 import { Menu, MenuButton } from "./menu.js";
+import { drawTransition } from "./transition.js";
 
 
 const BOTTOM_TILE_OBJECTS : number[] = [7, 8];
 const TOP_TILE_OBJECTS : number[] = [2, 3];
 
 const GHOST_TRANSFORM_TIMER : number = 24;
+
+
+const CLEAR_TEXT_APPEAR_TIME : number = 30;
+const CLEAR_LEAVE_STAGE_TIME : number = 90;
 
 
 export const enum EffectType {
@@ -64,6 +69,7 @@ export class Game implements Scene {
     private levelIndex : number = 0;
 
     private stageCleared : boolean = false;
+    private clearTimer : number = 0;
 
 
     private readonly setEffect : EffectCallback = (type : EffectType, x : number, y : number) => {
@@ -555,7 +561,14 @@ export class Game implements Scene {
         const dx : number = canvas.width/2 - bmp.width/2;
         const dy : number = canvas.height/2 - bmp.height/2;
 
-        canvas.drawBitmap(BitmapAsset.StageClear, Flip.None, dx, dy);
+        if (this.clearTimer >= CLEAR_TEXT_APPEAR_TIME) {
+        
+            canvas.drawBitmap(BitmapAsset.StageClear, Flip.None, dx, dy);
+            return;
+        }
+        
+        const t : number = 1.0 - this.clearTimer/CLEAR_TEXT_APPEAR_TIME;
+        canvas.drawFunnilyAppearingBitmap(BitmapAsset.StageClear, dx, dy, t, 32, 4, 4);
     }
 
 
@@ -585,6 +598,9 @@ export class Game implements Scene {
 
         this.transitionTimer = 1.0;
         this.fadingIn = false;
+
+        this.stageCleared = false;
+        this.clearTimer = 0;
     }
 
 
@@ -611,13 +627,17 @@ export class Game implements Scene {
         // Stage cleared screen
         if (this.stageCleared) {
 
-            if (event.anyPressed) {
+            // Update objects to finish coin animations
+            for (let o of this.objects) {
+
+                o.update(this.activeState, MOVE_SPEED, event);
+            }
+
+            this.clearTimer += event.tick;
+            if (this.clearTimer >= CLEAR_LEAVE_STAGE_TIME) {
 
                 this.fadingIn = true;
                 this.transitionTimer = 1.0;
-                // this.stageCleared = false;
-
-                event.playSample(SoundEffect.Select);
             }
             return;
         }
@@ -808,21 +828,13 @@ export class Game implements Scene {
             this.drawStageClear(canvas);
         }
 
-        if (this.transitionTimer > 0) {
-
-            let t : number = this.fadingIn ? 1.0 - this.transitionTimer : this.transitionTimer;
-            t = ((t*FADE_STEPS) | 0)/FADE_STEPS;
-
-            canvas.setColor("rgba(0,0,0," + String(t) + ")");
-            canvas.fillRect();
-            canvas.setColor();
-        }
+        drawTransition(canvas, this.transitionTimer, this.fadingIn);
     }
 
 
     public dispose() : number | undefined {
         
-        return undefined;
+        return Number(this.stageCleared);
     }
 
 }

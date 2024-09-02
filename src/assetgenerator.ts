@@ -3,7 +3,7 @@ import { Bitmap, Canvas } from "./canvas.js";
 import { OscType, Ramp } from "./sample.js";
 import { ProgramEvent } from "./event.js";
 import { BitmapAsset, SoundEffect } from "./mnemonics.js";
-
+import { Note } from "./notes.js";
 
 
 type PaletteLookup = [number, number, number, number][];
@@ -287,6 +287,25 @@ const generateSamples = (event : ProgramEvent) : void => {
 }
 
 
+const generateMusic = (event : ProgramEvent) : void => {
+
+    event.createSample(SoundEffect.StageClear,
+        [
+        Note.C3, 15, 0.50,
+        Note.E3, 7.5, 0.70,
+        Note.D3, 7.5, 1.0,
+        Note.F3, 7.5, 1.0,
+        Note.E3, 7.5, 1.0,
+        Note.G3, 15, 1.0,
+        Note.A3, 30, 1.0,
+        Note.A3, 15, 0.50,
+        ], 
+        0.40,
+        OscType.Square, 
+        Ramp.Instant);
+}
+
+
 // Hmm, generating assets from event...
 export const generateAssets = (event : ProgramEvent) : void => {
 
@@ -299,4 +318,5 @@ export const generateAssets = (event : ProgramEvent) : void => {
     
     // Samples
     generateSamples(event);
+    generateMusic(event);
 }

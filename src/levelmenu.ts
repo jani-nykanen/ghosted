@@ -28,6 +28,8 @@ export class LevelMenu implements Scene {
 
     private completedLevels : boolean[];
 
+    private animationTimer : number = 0.0;
+
 
     constructor() {
 
@@ -43,6 +45,20 @@ export class LevelMenu implements Scene {
         const active : boolean = this.activeButtonNumber == num;
         const colorArray : string[] = this.completedLevels[num - 1] ? BUTTON_COLORS_BEATEN : BUTTON_COLORS_UNBEATEN;
 
+        // Shadow
+        const shadowShiftX : number = active ? 1 : 3;
+        const shadowShiftY : number = active ? 6 : 8;
+        canvas.fillRect(x + shadowShiftX, y + shadowShiftY, width, height - 1, "rgba(0,0,0,0.25)");
+        // Shadow edges
+        if (!active) {
+
+            canvas.setAlpha(0.25);
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, x + width, y + 3, 16, 32, 5, 5);
+            canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, x - 1, y + height + 4, 24, 32, 4, 5);
+            canvas.setAlpha();
+        }
+
+        // Base button
         for (let i = 0; i < 4; ++ i) {
 
             const dx : number = x + i + BUTTON_POS_SHIFT[i];
@@ -67,18 +83,24 @@ export class LevelMenu implements Scene {
         // Player
         if (active) {
 
+            const dx : number = x + width/2 - 8;
+            const dy : number = y + height/2 - 12 - Math.abs(Math.sin(this.animationTimer*6*Math.PI)*6);
+
             canvas.setAlpha(0.25);
             canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
-                x + width/2 - 8, y + height/2, 
+                dx, y + height/2, 
                 16, 56, 16, 8);
             canvas.setAlpha();
 
             canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
-                x + width/2 - 8, y + height/2 - 12, 
+                dx, dy, 
                 0, 16, 16, 8);
             canvas.drawBitmap(BitmapAsset.GameArt, Flip.None,
-                x + width/2 - 8, y + height/2 - 4, 
+                dx, dy + 8, 
                 32, 16, 16, 8);
+
+            // Chin/neck
+            canvas.fillRect(dx + 6, dy + 9, 4, 1, "#000000");
         }
 
     }
@@ -113,6 +135,7 @@ export class LevelMenu implements Scene {
 
         this.fadingIn = false;
         this.transitionTimer = 1.0;
+        this.animationTimer = 0.0;
 
         if (param === 1) {
 
@@ -123,6 +146,7 @@ export class LevelMenu implements Scene {
 
     public update(event : ProgramEvent) : void {
 
+        const ANIMATIONS_SPEED : number = 1.0/120.0;
         const TRANSITION_SPEED : number = 1.0/30.0;
 
         if (this.transitionTimer > 0) {
@@ -137,6 +161,8 @@ export class LevelMenu implements Scene {
             }
             return;
         }
+
+        this.animationTimer = (this.animationTimer + ANIMATIONS_SPEED*event.tick) % 1.0;
 
         this.activeButtonNumber = 1 + this.cursorPos.y*HORIZONTAL_BUTTONS + this.cursorPos.x;
 

@@ -760,7 +760,10 @@ export class Game implements Scene {
                 event.playSample(SoundEffect.Transform);
             }
 
-            this.stageCleared = this.activeState.isStageClear();
+            if (this.stageCleared = this.activeState.isStageClear()) {
+
+                event.playSample(SoundEffect.StageClear);
+            }
         }
 
         // Update timers
@@ -782,8 +785,6 @@ export class Game implements Scene {
 
     public redraw(canvas : Canvas) : void {
         
-        const FADE_STEPS : number = 7;
-
         this.drawBackgroundGrid(canvas);
 
         // Testing

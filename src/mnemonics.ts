@@ -49,4 +49,7 @@ export const enum SoundEffect {
     Walk = 10,
     Select = 11,
     Pause = 12,
-}
+    StageClear = 13,
+};
+
+

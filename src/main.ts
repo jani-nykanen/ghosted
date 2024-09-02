@@ -5,6 +5,7 @@ import { Game } from "./game.js";
 import { Action, BitmapAsset } from "./mnemonics.js";
 import { Program } from "./program.js";
 import { LevelMenu } from "./levelmenu.js";
+import { TitleScreen } from "./titlescreen.js";
 
 
 const initialEvent = (event : ProgramEvent) : void => {
@@ -12,7 +13,8 @@ const initialEvent = (event : ProgramEvent) : void => {
     event.loadBitmap(BitmapAsset.RawFont, "f.png");
     event.loadBitmap(BitmapAsset.RawGameArt, "g.png");
 
-    event.addScene("ls", new LevelMenu(), true);
+    event.addScene("t", new TitleScreen(), true);
+    event.addScene("ls", new LevelMenu());
     event.addScene("g", new Game());
 }
 

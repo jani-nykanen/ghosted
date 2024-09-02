@@ -30,6 +30,8 @@ export class LevelMenu implements Scene {
 
     private animationTimer : number = 0.0;
 
+    private leaving : boolean = false;
+
 
     constructor() {
 
@@ -133,6 +135,7 @@ export class LevelMenu implements Scene {
 
     public onChange(param : number | undefined, event : ProgramEvent) : void {
 
+        this.leaving = false;
         this.fadingIn = false;
         this.transitionTimer = 1.0;
         this.animationTimer = 0.0;
@@ -147,7 +150,7 @@ export class LevelMenu implements Scene {
     public update(event : ProgramEvent) : void {
 
         const ANIMATIONS_SPEED : number = 1.0/120.0;
-        const TRANSITION_SPEED : number = 1.0/30.0;
+        const TRANSITION_SPEED : number = 1.0/20.0;
 
         if (this.transitionTimer > 0) {
 
@@ -155,10 +158,21 @@ export class LevelMenu implements Scene {
 
                 if (this.fadingIn) {
 
-                    event.changeScene("g", event);
+                    event.changeScene(this.leaving ? "t" : "g", event);
                 }
                 this.transitionTimer = 0.0;
             }
+            return;
+        }
+
+        if (event.getAction(Action.Back) == InputState.Pressed) {
+
+            event.playSample(SoundEffect.Select);
+            // event.changeScene("g", event);
+            this.transitionTimer = 1.0;
+            this.fadingIn = true;
+            this.leaving = true;
+
             return;
         }
 

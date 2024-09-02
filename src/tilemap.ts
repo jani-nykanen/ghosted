@@ -11,9 +11,20 @@ export class Tilemap {
 
     constructor(packedData : string) {
 
-        this.width = parseInt(packedData[0]);
-        this.height = parseInt(packedData[1]);
-        this.tiles = packedData.substring(2).split("").map((c : string) => parseInt(c, 32));
+        this.width = parseInt(packedData[0]) + 2;
+        this.height = parseInt(packedData[1]) + 2;
+        
+        const rawTiles : number[] = packedData.substring(2).split("").map((c : string) => parseInt(c, 32));
+
+        this.tiles = (new Array<number> (this.width*this.height)).fill(1);
+        let i : number = 0
+        for (let y = 1; y < this.height - 1; ++ y) {
+
+            for (let x = 1; x < this.width - 1; ++ x) {
+
+                this.tiles[y*this.width + x] = rawTiles[i ++];
+            }
+        }
     }
 
 

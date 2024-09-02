@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="8" height="7" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="6" height="5" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
  <tileset firstgid="1" source="../tiled/editor_tiles.tsx"/>
- <layer id="1" name="base" width="8" height="7">
+ <layer id="1" name="base" width="6" height="5">
   <data encoding="csv">
-1,1,1,1,1,1,1,1,
-1,0,1,2,6,1,7,1,
-1,7,0,6,6,0,0,1,
-1,0,4,5,0,1,0,1,
-1,6,6,4,6,3,6,1,
-1,7,0,1,0,0,7,1,
-1,1,1,1,1,1,1,1
+0,1,2,6,1,7,
+7,0,6,6,0,0,
+0,4,5,0,1,0,
+6,6,4,6,3,6,
+7,0,1,0,0,7
 </data>
  </layer>
 </map>

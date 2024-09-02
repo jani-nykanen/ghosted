@@ -30,6 +30,7 @@ export const enum BitmapAsset {
     FontOutlines = 6,
 
     StageClear = 7,
+    Title = 8,
 };
 
 

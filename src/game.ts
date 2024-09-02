@@ -609,7 +609,7 @@ export class Game implements Scene {
         const MAX_BUFFER_SIZE : number = 64;
         const MOVE_SPEED : number = 1.0/16.0;
         const ARROW_FLICKER_SPEED : number = 1.0/60.0;
-        const TRANSITION_SPEED : number = 1.0/30.0;
+        const TRANSITION_SPEED : number = 1.0/20.0;
 
         if (this.transitionTimer > 0) {
 

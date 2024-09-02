@@ -184,6 +184,12 @@ const generateBigText = (event : ProgramEvent) : void => {
             [182, 255, 0],
             [73, 182, 0]
         ]));
+
+    event.addBitmap(BitmapAsset.Title,
+        createBigText("GHOSTED", "bold 32px Arial", 192, 64, 56, 6, [
+            [255, 182, 0],
+            [219, 109, 0]
+        ]));
 }
 
 
@@ -297,8 +303,7 @@ const generateMusic = (event : ProgramEvent) : void => {
         Note.F3, 7.5, 1.0,
         Note.E3, 7.5, 1.0,
         Note.G3, 15, 1.0,
-        Note.A3, 30, 1.0,
-        Note.A3, 15, 0.50,
+        Note.A3, 30, 0.80,
         ], 
         0.40,
         OscType.Square, 

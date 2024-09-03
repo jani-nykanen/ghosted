@@ -8,7 +8,7 @@ import { drawTransition } from "./transition.js";
 
 
 const HORIZONTAL_BUTTONS : number = 4;
-const VERTICAL_BUTTONS : number = 3;
+const VERTICAL_BUTTONS : number = 4;
 
 const BUTTON_COLORS_UNBEATEN: string[] = ["#000000", "#924900", "#ffb66d", "#db6d00"];
 const BUTTON_COLORS_BEATEN: string[] = ["#000000", "#db9200", "#ffffdb", "#ffdb6d"];

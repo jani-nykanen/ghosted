@@ -305,7 +305,7 @@ const generateMusic = (event : ProgramEvent) : void => {
         Note.G3, 15, 1.0,
         Note.A3, 30, 0.80,
         ], 
-        0.40,
+        0.35,
         OscType.Square, 
         Ramp.Instant);
 }

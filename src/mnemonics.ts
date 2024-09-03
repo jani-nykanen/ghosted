@@ -51,6 +51,7 @@ export const enum SoundEffect {
     Select = 11,
     Pause = 12,
     StageClear = 13,
+    FinalStageTransition = 14,
 };
 
 

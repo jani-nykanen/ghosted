@@ -20,8 +20,12 @@ export class TitleScreen implements Scene {
 
     private menu : Menu;
 
+    private readonly completedLevels : boolean[];
+
     
-    constructor() {
+    constructor(completedLevels : boolean[]) {
+
+        this.completedLevels = completedLevels;
 
         this.menu = new Menu(
         [

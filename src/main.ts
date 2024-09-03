@@ -10,12 +10,14 @@ import { TitleScreen } from "./titlescreen.js";
 
 const initialEvent = (event : ProgramEvent) : void => {
 
+    const completedLevels : boolean[] = (new Array<boolean> (12)).fill(false);
+
     event.loadBitmap(BitmapAsset.RawFont, "f.png");
     event.loadBitmap(BitmapAsset.RawGameArt, "g.png");
 
-    event.addScene("t", new TitleScreen(), true);
-    event.addScene("ls", new LevelMenu());
-    event.addScene("g", new Game());
+    event.addScene("t", new TitleScreen(completedLevels), true);
+    event.addScene("ls", new LevelMenu(completedLevels));
+    event.addScene("g", new Game(completedLevels));
 }
 
 

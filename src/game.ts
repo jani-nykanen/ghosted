@@ -60,6 +60,8 @@ export class Game implements Scene {
     private transformTimer : number = 0;
     private animationTimer : number = 0;
     private arrowTimer : number = 0;
+    private gridTimer : number = 0; // Only in the final level
+    private shakeTimer : number = 0; // Same here
 
     private transitionTimer : number = 0;
     private fadingIn : boolean = false;
@@ -70,6 +72,9 @@ export class Game implements Scene {
 
     private stageCleared : boolean = false;
     private clearTimer : number = 0;
+
+
+    private readonly completedLevels : boolean[];
 
 
     private readonly setEffect : EffectCallback = (type : EffectType, x : number, y : number) => {
@@ -84,7 +89,9 @@ export class Game implements Scene {
     };
 
 
-    constructor() {
+    constructor(completedLevels : boolean[]) {
+
+        this.completedLevels = completedLevels;
 
         this.stateBuffer = new Array<PuzzleState> ();
         this.objects = new Array<GameObject> ();
@@ -233,6 +240,11 @@ export class Game implements Scene {
     private reset(event : ProgramEvent) : void {
 
         this.activeState = new PuzzleState(undefined, this.baseMap);
+        if (this.levelIndex == 13) {
+
+            this.activeState.turnsLeft = 0;
+        }
+
         this.resetState();
 
         // Needed for some reason (or not)
@@ -246,8 +258,10 @@ export class Game implements Scene {
 
         const GRID_SIZE : number = 32;
 
-        canvas.clear("#4992db");
-        canvas.setColor("#246db6");
+        const finalStage : boolean = this.levelIndex == 13;
+
+        canvas.clear(finalStage ? "#b6b6b6" : "#4992db");
+        canvas.setColor(finalStage ? "#929292" : "#246db6");
 
         const loopx : number = (((canvas.width/GRID_SIZE + 1)/2) | 0) + 1;
         const loopy : number = (((canvas.height/GRID_SIZE + 1)/2) | 0) + 1;
@@ -260,7 +274,8 @@ export class Game implements Scene {
                     continue;
 
                 canvas.fillRect(
-                    canvas.width/2 - x*GRID_SIZE, canvas.height/2 - y*GRID_SIZE, 
+                    canvas.width/2 - x*GRID_SIZE - this.gridTimer, 
+                    canvas.height/2 - y*GRID_SIZE + this.gridTimer, 
                     GRID_SIZE, GRID_SIZE);
             }
         }
@@ -475,7 +490,7 @@ export class Game implements Scene {
 
         // Stage number
         canvas.drawText(BitmapAsset.FontOutlines, 
-            "STAGE " + String(this.levelIndex), 
+            this.levelIndex == 13 ? "NIGHTMARE" : "STAGE " + String(this.levelIndex), 
             canvas.width/2, canvas.height - 19, -8, 0, Align.Center);
 
         if (((this.transformTimer/4) | 0) % 2 != 0) {
@@ -574,6 +589,8 @@ export class Game implements Scene {
 
     public onChange(param : number | undefined, event : ProgramEvent) : void {
 
+        const FINAL_LEVEL_SHAKE : number = 30;
+
         this.levelIndex = param ?? 1;
 
         this.baseMap = new Tilemap(LEVEL_DATA[this.levelIndex - 1]);
@@ -586,6 +603,10 @@ export class Game implements Scene {
         this.objects.length = 0;
 
         this.stateBuffer.push(new PuzzleState(undefined, this.baseMap));
+        if (this.levelIndex == 13) {
+
+            this.stateBuffer[0].turnsLeft = 0;
+        }
         this.activeState = new PuzzleState(this.stateBuffer[0]);
         
         this.objects.length = 0;
@@ -595,6 +616,13 @@ export class Game implements Scene {
         this.transformTimer = 0;
         this.effectTimer = 0;
         this.animationTimer = 0;
+        this.gridTimer = 0;
+
+        this.shakeTimer = 0;
+        if (param === 13) {
+
+            this.shakeTimer = FINAL_LEVEL_SHAKE;
+        }
 
         this.transitionTimer = 1.0;
         this.fadingIn = false;
@@ -635,6 +663,14 @@ export class Game implements Scene {
 
             this.clearTimer += event.tick;
             if (this.clearTimer >= CLEAR_LEAVE_STAGE_TIME) {
+
+                // TODO: Check if all the stages are cleared
+                if (!this.completedLevels.includes(false)) {
+
+                    event.playSample(SoundEffect.FinalStageTransition);
+                    this.onChange(13, event);
+                    return;
+                }
 
                 this.fadingIn = true;
                 this.transitionTimer = 1.0;
@@ -760,9 +796,11 @@ export class Game implements Scene {
                 event.playSample(SoundEffect.Transform);
             }
 
+            // Note: "=" is intentional here, do NOT change it to "=="!
             if (this.stageCleared = this.activeState.isStageClear()) {
 
                 event.playSample(SoundEffect.StageClear);
+                this.completedLevels[this.levelIndex - 1] = true;
             }
         }
 
@@ -780,6 +818,8 @@ export class Game implements Scene {
             this.animationTimer -= MOVE_SPEED*event.tick;
         }
         this.arrowTimer = (this.arrowTimer + ARROW_FLICKER_SPEED*event.tick) % 1.0;
+        this.gridTimer = (this.gridTimer + 0.5*event.tick) % 32;
+        this.shakeTimer = Math.max(0, this.shakeTimer - event.tick);
     }
 
 
@@ -793,6 +833,14 @@ export class Game implements Scene {
         // canvas.drawBitmap(BitmapAsset.StageClear, Flip.None, 0, 0);
 
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
+
+        if (this.shakeTimer > 0) {
+
+            const shakex : number = -2 + ((Math.random()*5) | 0);
+            const shakey : number = -2 + ((Math.random()*5) | 0);
+
+            canvas.move(shakex, shakey);
+        }
 
         this.drawFrame(canvas);
         this.drawBottomLayer(canvas);

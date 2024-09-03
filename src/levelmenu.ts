@@ -8,7 +8,7 @@ import { drawTransition } from "./transition.js";
 
 
 const HORIZONTAL_BUTTONS : number = 4;
-const VERTICAL_BUTTONS : number = 4;
+const VERTICAL_BUTTONS : number = 3;
 
 const BUTTON_COLORS_UNBEATEN: string[] = ["#000000", "#924900", "#ffb66d", "#db6d00"];
 const BUTTON_COLORS_BEATEN: string[] = ["#000000", "#db9200", "#ffffdb", "#ffdb6d"];
@@ -26,16 +26,16 @@ export class LevelMenu implements Scene {
     private transitionTimer : number = 0;
     private fadingIn : boolean = false;
 
-    private completedLevels : boolean[];
-
     private animationTimer : number = 0.0;
 
     private leaving : boolean = false;
 
+    private readonly completedLevels : boolean[];
 
-    constructor() {
 
-        this.completedLevels = (new Array<boolean> (12)).fill(false);
+    constructor(completedLevels : boolean[]) {
+
+        this.completedLevels = completedLevels;
     }
 
 

@@ -290,6 +290,20 @@ const generateSamples = (event : ProgramEvent) : void => {
             OscType.Square, 
             Ramp.Instant);
     }
+
+    event.createSample(SoundEffect.FinalStageTransition,
+        [112, 4, 0.50,
+         160, 4, 1.0,
+         112, 5, 1.0,
+         160, 5, 1.0,
+         112, 6, 1.0,
+         112, 8, 0.80,
+         160, 8, 0.80,
+         192, 32, 0.50, 
+        ], 
+        0.40,
+        OscType.Square, 
+        Ramp.Exponential);
 }
 
 

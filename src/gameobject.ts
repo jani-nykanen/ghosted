@@ -172,7 +172,8 @@ export class GameObject {
     private moveTo(activeState : PuzzleState, x : number, y : number, event : ProgramEvent) : boolean {
 
         if (activeState.isSolid(x, y, 
-            this.type == GameObjectType.Rock || activeState.turnsLeft <= 0)) {
+            this.type == GameObjectType.Rock || activeState.turnsLeft <= 0 || 
+            (this.automaticallyMoving && activeState.getTile(0, x, y) != 4) )) {
 
             return false;
         }
@@ -559,11 +560,11 @@ export class GameObject {
     }
 
 
-    public setPosition(x : number, y : number, direction : Direction = Direction.None) : void {
+    public setPosition(x : number, y : number, direction : Direction = Direction.Down) : void {
 
         this.pos = new Vector(x, y);
         this.target = this.pos.clone();
-        this.direction = direction;
+        this.direction = direction == Direction.None ? Direction.Down : direction;;
 
         this.renderPos.x = this.pos.x*16;
         this.renderPos.y = this.pos.y*16;

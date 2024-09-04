@@ -24,7 +24,7 @@ export class LevelMenu implements Scene {
     private activeButtonNumber : number = 1;
 
     private transitionTimer : number = 0;
-    private fadingIn : boolean = false;
+    private fadingOut : boolean = false;
 
     private animationTimer : number = 0.0;
 
@@ -136,7 +136,7 @@ export class LevelMenu implements Scene {
     public onChange(param : number | undefined, event : ProgramEvent) : void {
 
         this.leaving = false;
-        this.fadingIn = false;
+        this.fadingOut = false;
         this.transitionTimer = 1.0;
         this.animationTimer = 0.0;
 
@@ -156,7 +156,7 @@ export class LevelMenu implements Scene {
 
             if ((this.transitionTimer -= TRANSITION_SPEED* event.tick) < 0) {
 
-                if (this.fadingIn) {
+                if (this.fadingOut) {
 
                     event.changeScene(this.leaving ? "t" : "g", event);
                 }
@@ -170,7 +170,7 @@ export class LevelMenu implements Scene {
             event.playSample(SoundEffect.Select);
             // event.changeScene("g", event);
             this.transitionTimer = 1.0;
-            this.fadingIn = true;
+            this.fadingOut = true;
             this.leaving = true;
 
             return;
@@ -185,7 +185,7 @@ export class LevelMenu implements Scene {
             event.playSample(SoundEffect.Select);
             // event.changeScene("g", event);
             this.transitionTimer = 1.0;
-            this.fadingIn = true;
+            this.fadingOut = true;
 
             return;
         }
@@ -230,7 +230,7 @@ export class LevelMenu implements Scene {
 
         this.drawButtons(canvas);
 
-        drawTransition(canvas, this.transitionTimer, this.fadingIn);
+        drawTransition(canvas, this.transitionTimer, this.fadingOut);
     }
 
 

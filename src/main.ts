@@ -6,11 +6,13 @@ import { Action, BitmapAsset } from "./mnemonics.js";
 import { Program } from "./program.js";
 import { LevelMenu } from "./levelmenu.js";
 import { TitleScreen } from "./titlescreen.js";
+import { loadProgress } from "./progress.js";
+import { Ending } from "./ending.js";
 
 
 const initialEvent = (event : ProgramEvent) : void => {
 
-    const completedLevels : boolean[] = (new Array<boolean> (12)).fill(false);
+    const completedLevels : boolean[] = loadProgress(); // (new Array<boolean> (12)).fill(true); 
 
     event.loadBitmap(BitmapAsset.RawFont, "f.png");
     event.loadBitmap(BitmapAsset.RawGameArt, "g.png");
@@ -18,6 +20,7 @@ const initialEvent = (event : ProgramEvent) : void => {
     event.addScene("t", new TitleScreen(completedLevels), true);
     event.addScene("ls", new LevelMenu(completedLevels));
     event.addScene("g", new Game(completedLevels));
+    event.addScene("e", new Ending());
 }
 
 

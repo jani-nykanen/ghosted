@@ -1,7 +1,7 @@
 import { Canvas } from "./canvas.js";
 
 
-export const drawTransition = (canvas : Canvas, transitionTimer : number, fadingIn : boolean) : void => {
+export const drawTransition = (canvas : Canvas, transitionTimer : number, fadingOut : boolean) : void => {
 
     const FADE_STEPS : number = 7;
 
@@ -10,7 +10,7 @@ export const drawTransition = (canvas : Canvas, transitionTimer : number, fading
         return;
     }
 
-    let t : number = fadingIn ? 1.0 - transitionTimer : transitionTimer;
+    let t : number = fadingOut ? 1.0 - transitionTimer : transitionTimer;
     t = ((t*FADE_STEPS) | 0)/FADE_STEPS;
 
     canvas.setColor("rgba(0,0,0," + String(t) + ")");

@@ -6,6 +6,7 @@ import { Vector } from "./vector.js";
 import { negMod } from "./math.js";
 import { drawTransition } from "./transition.js";
 import { Menu, MenuButton } from "./menu.js";
+import { storeProgress } from "./progress.js";
 
 
 
@@ -19,10 +20,12 @@ export class TitleScreen implements Scene {
     private enterPressed : boolean = false;
 
     private menu : Menu;
+    private yesNoMenu : Menu;
+
 
     private readonly completedLevels : boolean[];
 
-    
+
     constructor(completedLevels : boolean[]) {
 
         this.completedLevels = completedLevels;
@@ -44,11 +47,26 @@ export class TitleScreen implements Scene {
         }),
         new MenuButton("DELETE DATA", (event : ProgramEvent) : boolean => {
 
-            // ...
+            this.yesNoMenu.activate(1);
             return false;
         })
-
         ], true);
+
+
+        this.yesNoMenu = new Menu(
+        [
+        new MenuButton("YES", (event : ProgramEvent) : boolean => {
+
+            this.completedLevels.fill(false);
+            storeProgress(this.completedLevels);
+            return true;
+        }),
+        new MenuButton("NO", (event : ProgramEvent) : boolean => {
+
+            return true;
+        })
+        ]
+        )
     }
 
 
@@ -81,7 +99,14 @@ export class TitleScreen implements Scene {
 
         if (this.enterPressed) {
 
-            this.menu.update(event, false);
+            if (this.yesNoMenu.active) {
+                
+                this.yesNoMenu.update(event);
+            }
+            else {
+
+                this.menu.update(event, false);
+            }
         }
         else if (event.getAction(Action.Choose) == InputState.Pressed) {
 
@@ -109,7 +134,16 @@ export class TitleScreen implements Scene {
 
         if (this.enterPressed) {
 
-            this.menu.draw(canvas, 0, 32, false);
+            if (this.yesNoMenu.active) {
+
+                canvas.drawText(BitmapAsset.FontWhite, "CLEAR PROGRESS?", 
+                    canvas.width/2, canvas.height/2 + 8, -1, 0, Align.Center);
+                this.yesNoMenu.draw(canvas, 0, 40);
+            }
+            else {
+
+                this.menu.draw(canvas, 0, 32, false);
+            }
         }
         else if (this.animationTimer < 0.5) {
 

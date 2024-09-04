@@ -10,6 +10,7 @@ import { Direction, GameObject, GameObjectType } from "./gameobject.js";
 import { Vector } from "./vector.js";
 import { Menu, MenuButton } from "./menu.js";
 import { drawTransition } from "./transition.js";
+import { storeProgress } from "./progress.js";
 
 
 const BOTTOM_TILE_OBJECTS : number[] = [7, 8];
@@ -64,7 +65,7 @@ export class Game implements Scene {
     private shakeTimer : number = 0; // Same here
 
     private transitionTimer : number = 0;
-    private fadingIn : boolean = false;
+    private fadingOut : boolean = false;
 
     private pauseMenu : Menu;
 
@@ -119,7 +120,7 @@ export class Game implements Scene {
 
                 // event.changeScene("ls", event);
                 this.transitionTimer = 1.0;
-                this.fadingIn = true;
+                this.fadingOut = true;
                 return true;
             })
 
@@ -625,7 +626,7 @@ export class Game implements Scene {
         }
 
         this.transitionTimer = 1.0;
-        this.fadingIn = false;
+        this.fadingOut = false;
 
         this.stageCleared = false;
         this.clearTimer = 0;
@@ -643,9 +644,9 @@ export class Game implements Scene {
 
             if ((this.transitionTimer -= TRANSITION_SPEED* event.tick) < 0) {
 
-                if (this.fadingIn) {
+                if (this.fadingOut) {
 
-                    event.changeScene("ls", event);
+                    event.changeScene(this.levelIndex == 13 && this.stageCleared ? "e" : "ls", event);
                 }
                 this.transitionTimer = 0.0;
             }
@@ -664,15 +665,16 @@ export class Game implements Scene {
             this.clearTimer += event.tick;
             if (this.clearTimer >= CLEAR_LEAVE_STAGE_TIME) {
 
-                // TODO: Check if all the stages are cleared
-                if (!this.completedLevels.includes(false)) {
+                // Check if all the stages are cleared
+                if (this.levelIndex != 13 &&
+                    !this.completedLevels.includes(false)) {
 
                     event.playSample(SoundEffect.FinalStageTransition);
                     this.onChange(13, event);
                     return;
                 }
 
-                this.fadingIn = true;
+                this.fadingOut = true;
                 this.transitionTimer = 1.0;
             }
             return;
@@ -801,6 +803,7 @@ export class Game implements Scene {
 
                 event.playSample(SoundEffect.StageClear);
                 this.completedLevels[this.levelIndex - 1] = true;
+                storeProgress(this.completedLevels);
             }
         }
 
@@ -818,7 +821,10 @@ export class Game implements Scene {
             this.animationTimer -= MOVE_SPEED*event.tick;
         }
         this.arrowTimer = (this.arrowTimer + ARROW_FLICKER_SPEED*event.tick) % 1.0;
-        this.gridTimer = (this.gridTimer + 0.5*event.tick) % 32;
+        if (this.levelIndex == 13) {
+
+            this.gridTimer = (this.gridTimer + 0.5*event.tick) % 32;
+        }
         this.shakeTimer = Math.max(0, this.shakeTimer - event.tick);
     }
 
@@ -877,7 +883,7 @@ export class Game implements Scene {
             this.drawStageClear(canvas);
         }
 
-        drawTransition(canvas, this.transitionTimer, this.fadingIn);
+        drawTransition(canvas, this.transitionTimer, this.fadingOut);
     }
 
 

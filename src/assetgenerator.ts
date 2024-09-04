@@ -198,7 +198,7 @@ const generateSamples = (event : ProgramEvent) : void => {
     event.createSample(SoundEffect.PushBoulder,
         [96, 6, 1.0,
          80, 4, 0.20], 
-        0.80,
+        0.70,
         OscType.Sawtooth, 
         Ramp.Exponential);
 
@@ -206,7 +206,7 @@ const generateSamples = (event : ProgramEvent) : void => {
         [256, 4, 1.0,
         192, 6, 0.70,
         160, 12, 0.20], 
-        1.25,
+        1.15,
         OscType.Triangle, 
         Ramp.Exponential);
 
@@ -222,7 +222,7 @@ const generateSamples = (event : ProgramEvent) : void => {
         [160, 12, 1.0,
         192, 6, 0.70,
         256, 4, 0.20], 
-        1.25,
+        1.15,
         OscType.Triangle, 
         Ramp.Exponential);
 
@@ -230,7 +230,7 @@ const generateSamples = (event : ProgramEvent) : void => {
         [224, 2, 0.70,
          160, 3, 1.0,
          144, 6, 0.20], 
-        1.40,
+        1.15,
         OscType.Triangle, 
         Ramp.Exponential);
         

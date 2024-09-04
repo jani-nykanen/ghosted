@@ -223,13 +223,21 @@ export class LevelMenu implements Scene {
 
     public redraw(canvas : Canvas) : void {
         
+        // const TRANSITION_SHIFT : number = 16;
+
         canvas.moveTo();
         canvas.clear("#246db6");
+/*
+        if (this.transitionTimer > 0) {
 
-        canvas.drawText(BitmapAsset.FontOutlines, "SELECT LEVEL", canvas.width/2, 2, -8, 0, Align.Center);
-
+            const t : number = this.fadingOut ? 1.0 - this.transitionTimer : this.transitionTimer;
+            canvas.move(0, -((t*TRANSITION_SHIFT) | 0));
+        }  
+            */
         this.drawButtons(canvas);
 
+        // canvas.moveTo();
+        canvas.drawText(BitmapAsset.FontOutlines, "SELECT LEVEL", canvas.width/2, 2, -8, 0, Align.Center);
         drawTransition(canvas, this.transitionTimer, this.fadingOut);
     }
 

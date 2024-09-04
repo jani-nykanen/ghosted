@@ -113,6 +113,10 @@ const generateGameArt = (rgb333 : PaletteLookup, event : ProgramEvent) : void =>
         createCustomBitmap(bmpGameArtBase!.width, bmpGameArtBase!.height,
             (ctx : CanvasRenderingContext2D) : void => {
 
+                // Fill wall shadow
+                ctx.fillStyle = "rgba(0,0,0,0.25)";
+                ctx.fillRect(15, 15, 1, 1);
+
                 // Fill wall
                 ctx.fillStyle = "#dbdbdb";
                 ctx.fillRect(2, 2, 12, 12);
@@ -304,6 +308,14 @@ const generateSamples = (event : ProgramEvent) : void => {
         0.40,
         OscType.Square, 
         Ramp.Exponential);
+/*
+    event.createSample(SoundEffect.Reject,
+        [96, 6, 1.0,
+         64, 5, 0.20], 
+        0.60,
+        OscType.Sawtooth, 
+        Ramp.Instant);
+    */
 }
 
 

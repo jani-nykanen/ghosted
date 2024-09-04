@@ -130,7 +130,7 @@ export class Game implements Scene {
 
     private parseInitialObject() : void {
 
-        this.activeState.iterate((bottomTileID : number, topTileID : number, x : number, y : number) : void => {
+        this.activeState!.iterate((bottomTileID : number, topTileID : number, x : number, y : number) : void => {
 
             // Bottom layer objects
             if (BOTTOM_TILE_OBJECTS.includes(bottomTileID)) {
@@ -187,7 +187,7 @@ export class Game implements Scene {
         const resetIndicesBottom : boolean[] = (new Array<boolean> (this.objects.length)).fill(false);
 
         // Reset objects to the their corresponding locations
-        this.activeState.iterate((bottomTileID : number, topTileID : number, x : number, y : number) : void => {
+        this.activeState!.iterate((bottomTileID : number, topTileID : number, x : number, y : number) : void => {
 
             // Note: had to do this twice since there might be two objects in the same tile.
             // "Good design" I call it...
@@ -243,13 +243,13 @@ export class Game implements Scene {
         this.activeState = new PuzzleState(undefined, this.baseMap);
         if (this.levelIndex == 13) {
 
-            this.activeState.turnsLeft = 0;
+            this.activeState!.turnsLeft = 0;
         }
 
         this.resetState();
 
         // Needed for some reason (or not)
-        // this.activeState.turnsLeft = 13;
+        // this.activeState!.turnsLeft = 13;
 
         this.stateBuffer.push(new PuzzleState(this.activeState));
     }
@@ -335,7 +335,7 @@ export class Game implements Scene {
 
             for (let x = 1; x < this.width - 1; ++ x) {
 
-                const tileID : number = this.activeState.getTile(0, x, y);
+                const tileID : number = this.activeState!.getTile(0, x, y);
 
                 const dx : number = x*16;
                 const dy : number = y*16;
@@ -502,7 +502,7 @@ export class Game implements Scene {
         const dx : number = canvas.width/2 + 4;
         const dy : number = 2;
 
-        if (this.activeState.turnsLeft <= 0) {
+        if (this.activeState!.turnsLeft <= 0) {
 
             canvas.drawText(BitmapAsset.FontOutlines, "SPOOKY!",
                 dx, dy, -8, 0, Align.Center);
@@ -515,7 +515,7 @@ export class Game implements Scene {
             !this.playerRef!.moving ||
             this.playerRef!.automaticallyMoving) {
 
-            canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState.turnsLeft),
+            canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState!.turnsLeft),
                 dx, dy, -8, 0, Align.Center);
             return;
         }
@@ -524,13 +524,13 @@ export class Game implements Scene {
 
         // Old time
         canvas.setAlpha(this.animationTimer);
-        canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState.turnsLeft),
+        canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState!.turnsLeft),
             dx, dy + t*DISAPPEAR_MOVE_DISTANCE, -8, 0, Align.Center);
 
         canvas.setAlpha(t);
 
         // New time
-        canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState.turnsLeft - 1),
+        canvas.drawText(BitmapAsset.FontOutlines, String(this.activeState!.turnsLeft - 1),
             dx, dy - this.animationTimer*DISAPPEAR_MOVE_DISTANCE, -8, 0, Align.Center);
 
         canvas.setAlpha();
@@ -609,7 +609,7 @@ export class Game implements Scene {
             this.stateBuffer[0].turnsLeft = 0;
         }
         this.activeState = new PuzzleState(this.stateBuffer[0]);
-        
+
         this.objects.length = 0;
         this.parseInitialObject();
 
@@ -696,20 +696,27 @@ export class Game implements Scene {
         }
 
         if (event.getAction(Action.Undo) == InputState.Pressed) {
+/*
+            if (this.isMoving) {
 
-            event.playSample(SoundEffect.Undo);
-            this.undo(event);
-            return;
+                event.playSample(SoundEffect.Reject);
+            }
+            else {
+*/
+                event.playSample(SoundEffect.Undo);
+                this.undo(event);
+                return;
+            // }
         }
         if (event.getAction(Action.Restart) == InputState.Pressed) {
 
             event.playSample(SoundEffect.Restart);
             this.reset(event);
-            return;
         }
 
         let anyMoved : boolean = false;
         let nonPlayerMoved : boolean = false;
+        let startTurn : boolean = false;
         const wasPlayerMoving : boolean = this.playerRef!.moving;
 
         if (this.transformTimer <= 0 && 
@@ -722,6 +729,7 @@ export class Game implements Scene {
 
                     const thisMoved : boolean = o.control(this.activeState, event);
                     anyMoved = thisMoved || anyMoved;
+                    startTurn = startTurn || thisMoved;
                     if (thisMoved && o.type != GameObjectType.Player) {
 
                         nonPlayerMoved = true;
@@ -740,7 +748,7 @@ export class Game implements Scene {
             this.playerRef!.moving && 
             !this.playerRef!.jumping &&
             !nonPlayerMoved &&
-            this.activeState.turnsLeft > 0) {
+            this.activeState!.turnsLeft > 0) {
 
             event.playSample(SoundEffect.Walk);
         }
@@ -760,22 +768,22 @@ export class Game implements Scene {
             this.animationTimer = 0.0;
             this.checkUnderlyingTiles(event);
 
-            const oldMoveCount : number = this.activeState.turnsLeft;
+            const oldMoveCount : number = this.activeState!.turnsLeft;
 
             if (wasPlayerMoving &&
                 !this.playerRef!.automaticallyMoving) {
 
-                this.activeState.turnsLeft = Math.max(0, this.activeState.turnsLeft - 1);
+                this.activeState!.turnsLeft = Math.max(0, this.activeState!.turnsLeft - 1);
             }
 
             // Turn into a ghost
-            if (oldMoveCount == 1 && this.activeState.turnsLeft == 0) {
+            if (oldMoveCount == 1 && this.activeState!.turnsLeft == 0) {
 
                 this.transformTimer = GHOST_TRANSFORM_TIMER;
                 event.playSample(SoundEffect.Transform);
             }
             
-            if (oldMoveCount > 0 && this.activeState.turnsLeft == 0) {
+            if (oldMoveCount > 0 && this.activeState!.turnsLeft == 0) {
 
                 // Do additional check in the case that the player is standing
                 // in the same tile as a collectable item
@@ -792,14 +800,14 @@ export class Game implements Scene {
             }
 
             // Transforming back to human
-            if (this.activeState.turnsLeft == 13) {
+            if (this.activeState!.turnsLeft == 13) {
 
                 this.transformTimer = GHOST_TRANSFORM_TIMER;
                 event.playSample(SoundEffect.Transform);
             }
 
             // Note: "=" is intentional here, do NOT change it to "=="!
-            if (this.stageCleared = this.activeState.isStageClear()) {
+            if (this.stageCleared = this.activeState!.isStageClear()) {
 
                 event.playSample(SoundEffect.StageClear);
                 this.completedLevels[this.levelIndex - 1] = true;
@@ -831,15 +839,20 @@ export class Game implements Scene {
 
     public redraw(canvas : Canvas) : void {
         
+       // const TRANSITION_SHIFT : number = 16;
+
+       // This was a bad idea
+       /*
+        if (this.transitionTimer > 0) {
+
+            const t : number = this.fadingOut ? 1.0 - this.transitionTimer : this.transitionTimer;
+            canvas.moveTo(0, (t*TRANSITION_SHIFT) | 0);
+        }
+        */
+
         this.drawBackgroundGrid(canvas);
 
-        // Testing
-        // canvas.drawBitmap(BitmapAsset.GameArt, Flip.None, 16, 16);
-        // canvas.fillRect(0, 0, 96, 48, "#ffffff");
-        // canvas.drawBitmap(BitmapAsset.StageClear, Flip.None, 0, 0);
-
         canvas.moveTo(canvas.width/2 - this.baseMap!.width*8, canvas.height/2 - this.baseMap!.height*8);
-
         if (this.shakeTimer > 0) {
 
             const shakex : number = -2 + ((Math.random()*5) | 0);

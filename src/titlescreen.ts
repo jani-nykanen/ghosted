@@ -14,14 +14,15 @@ export class TitleScreen implements Scene {
 
 
     private transitionTimer : number = 0;
-    private fadingIn : boolean = false;
+    private fadingOut : boolean = false;
 
     private animationTimer : number = 1.0;
-    private enterPressed : boolean = false;
+    private phase : number = 0;
 
     private menu : Menu;
     private yesNoMenu : Menu;
 
+    private appearTimer : number = 1.0;
 
     private readonly completedLevels : boolean[];
 
@@ -34,7 +35,7 @@ export class TitleScreen implements Scene {
         [
         new MenuButton("START GAME", (event : ProgramEvent) : boolean => {
 
-            this.fadingIn = true;
+            this.fadingOut = true;
             this.transitionTimer = 1.0;
             return false;
         }),
@@ -65,15 +66,52 @@ export class TitleScreen implements Scene {
 
             return true;
         })
-        ]
-        )
+        ]);
+    }
+
+
+    private drawIntro(canvas : Canvas) : void {
+
+        canvas.drawText(BitmapAsset.FontWhite, 
+            this.phase == 0 ? "A GAME BY" : "MADE FOR",
+            canvas.width/2, canvas.height/2 - 10, -1, 0, Align.Center);
+        canvas.drawText(BitmapAsset.FontWhite, 
+            this.phase == 0 ? "JANI NYK@NEN" : "JS13K 2024",
+            canvas.width/2, canvas.height/2 + 2, -1, 0, Align.Center);
+
+        drawTransition(canvas, this.transitionTimer, this.fadingOut);
+        
+    }
+
+
+    private drawLogo(canvas : Canvas) : void {
+
+        const LOGO_Y_OFFSET : number = 14;
+        const VERTICAL_MOVEMENT : number = 1024;
+        const HORIZONTAL_MOVEMENT : number = 1024;
+
+        const bmpLogo : Bitmap = canvas.getBitmap(BitmapAsset.Title)!;
+        const dx : number = canvas.width/2 - bmpLogo.width/2;
+        for (let y = 0; y < bmpLogo.height; ++ y) {
+
+            const factor : number = ((y - LOGO_Y_OFFSET) - bmpLogo.height/2)/(bmpLogo.height/2);
+            const mult : number = factor*factor*Math.sign(factor);
+
+            const offset : number = this.appearTimer*VERTICAL_MOVEMENT*mult
+
+            const amplitude = 2 + HORIZONTAL_MOVEMENT*this.appearTimer*mult;
+
+            canvas.drawBitmap(BitmapAsset.Title, Flip.None,
+                dx + Math.sin((y/24 + this.animationTimer)*Math.PI*2)*amplitude, 
+                16 + y + offset, 0, y, bmpLogo.width, 1);
+        }
     }
 
 
     public onChange(param : number | undefined, event : ProgramEvent) : void {
 
         this.transitionTimer = 1.0;
-        this.fadingIn = false;
+        this.fadingOut = false;
 
         this.menu.changeMenuText(1, event.getAudioString());
     }
@@ -82,22 +120,62 @@ export class TitleScreen implements Scene {
     public update(event : ProgramEvent) : void {
 
         const ANIMATIONS_SPEED : number = 1.0/60.0;
-        const TRANSITION_SPEED : number = 1.0/20.0;
+        const TRANSITION_SPEED : number = 1.0/30.0;
+        const APPEAR_FADE_SPEED : number = 1.0/60.0;
+        const APPEAR_SPEED : number = 1.0/90.0;
+        const INTRO_TEXT_TIME : number = 45;
+
+        if (this.phase > 1) {
+
+            this.animationTimer = (this.animationTimer + ANIMATIONS_SPEED*event.tick) % 1.0;
+
+            if (this.appearTimer > 0) {
+
+                this.transitionTimer = Math.max(0, this.transitionTimer - APPEAR_FADE_SPEED*event.tick);
+                this.appearTimer -= APPEAR_SPEED*event.tick;
+                return;
+            }
+        }
 
         if (this.transitionTimer > 0) {
 
             if ((this.transitionTimer -= TRANSITION_SPEED* event.tick) < 0) {
 
-                if (this.fadingIn) {
+                if (this.fadingOut) {
 
-                    event.changeScene("ls", event);
+                    if (this.phase < 2) {
+
+                        if ((++ this.phase) == 2) {
+
+                            event.playSample(SoundEffect.IntroMusic);
+                        }
+                        this.fadingOut = false;
+                        this.transitionTimer = 1.0;
+                        return;
+                    }
+                    else {
+
+                        event.changeScene("ls", event);
+                    }
                 }
                 this.transitionTimer = 0.0;
             }
             return;
         }
 
-        if (this.enterPressed) {
+        if (this.phase < 2 && (this.animationTimer += event.tick) >= INTRO_TEXT_TIME) {
+
+            this.animationTimer = 0;
+            this.transitionTimer = 1.0;
+            this.fadingOut = true;
+        }
+        else if (this.phase == 2 &&
+            event.getAction(Action.Choose) == InputState.Pressed) {
+
+            this.phase = 3;
+            event.playSample(SoundEffect.Pause);
+        }
+        else if (this.phase == 3) {
 
             if (this.yesNoMenu.active) {
                 
@@ -108,13 +186,6 @@ export class TitleScreen implements Scene {
                 this.menu.update(event, false);
             }
         }
-        else if (event.getAction(Action.Choose) == InputState.Pressed) {
-
-            this.enterPressed = true;
-            event.playSample(SoundEffect.Pause);
-        }
-
-        this.animationTimer = (this.animationTimer + ANIMATIONS_SPEED*event.tick) % 1.0;
     }
 
 
@@ -123,16 +194,20 @@ export class TitleScreen implements Scene {
         canvas.moveTo();
         canvas.clear("#000000");
 
-        const bmpLogo : Bitmap = canvas.getBitmap(BitmapAsset.Title)!;
-        const dx : number = canvas.width/2 - bmpLogo.width/2;
-        for (let y = 0; y < bmpLogo.height; ++ y) {
+        if (this.phase < 2) {
 
-            canvas.drawBitmap(BitmapAsset.Title, Flip.None,
-                dx + Math.sin((y/24 + this.animationTimer)*Math.PI*2)*2, 
-                16 + y, 0, y, bmpLogo.width, 1);
+            this.drawIntro(canvas);
+            return;
         }
 
-        if (this.enterPressed) {
+        this.drawLogo(canvas);
+        if (this.appearTimer > 0.0) {
+
+            drawTransition(canvas, this.transitionTimer, this.fadingOut);
+            return; 
+        }
+
+        if (this.phase == 3) {
 
             if (this.yesNoMenu.active) {
 
@@ -156,7 +231,7 @@ export class TitleScreen implements Scene {
         canvas.drawText(BitmapAsset.FontWhite, "*2024 JANI NYK@NEN", 
             canvas.width/2, canvas.height - 12, -1, 0, Align.Center);
 
-        drawTransition(canvas, this.transitionTimer, this.fadingIn);
+        drawTransition(canvas, this.transitionTimer, this.fadingOut);
     }
 
 

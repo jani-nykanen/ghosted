@@ -23,6 +23,22 @@ const CLEAR_TEXT_APPEAR_TIME : number = 30;
 const CLEAR_LEAVE_STAGE_TIME : number = 90;
 
 
+// For some reason "progress" array can have 13th entry that
+// is always false, so "!progress.includes(false)" does not work
+// here...
+const levelsBeaten = (progress : boolean[]) : boolean => {
+
+    for (let i = 0; i < 12; ++ i) {
+
+        if (!progress[i]) {
+
+            return false;
+        }
+    }
+    return true;
+}
+
+
 export const enum EffectType {
 
     None = 0,
@@ -666,8 +682,7 @@ export class Game implements Scene {
             if (this.clearTimer >= CLEAR_LEAVE_STAGE_TIME) {
 
                 // Check if all the stages are cleared
-                if (this.levelIndex != 13 &&
-                    !this.completedLevels.includes(false)) {
+                if (this.levelIndex != 13 && levelsBeaten(this.completedLevels)) {
 
                     event.playSample(SoundEffect.FinalStageTransition);
                     this.onChange(13, event);

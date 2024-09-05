@@ -45,7 +45,7 @@ export class LevelMenu implements Scene {
         const DEPTH : number = 4;
 
         const active : boolean = this.activeButtonNumber == num;
-        const colorArray : string[] = this.completedLevels[num - 1] ? BUTTON_COLORS_BEATEN : BUTTON_COLORS_UNBEATEN;
+        const colorArray : string[] = (this.completedLevels[num - 1] === true) ? BUTTON_COLORS_BEATEN : BUTTON_COLORS_UNBEATEN;
 
         // Shadow
         const shadowShiftX : number = active ? 1 : 3;

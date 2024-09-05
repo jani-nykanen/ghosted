@@ -52,7 +52,7 @@ export const enum SoundEffect {
     Pause = 12,
     StageClear = 13,
     FinalStageTransition = 14,
-   //  Reject = 15,
+    IntroMusic = 15,
 };
 
 

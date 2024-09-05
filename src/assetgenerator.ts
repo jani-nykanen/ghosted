@@ -202,7 +202,7 @@ const generateSamples = (event : ProgramEvent) : void => {
     event.createSample(SoundEffect.PushBoulder,
         [96, 6, 1.0,
          80, 4, 0.20], 
-        0.70,
+        0.60,
         OscType.Sawtooth, 
         Ramp.Exponential);
 
@@ -218,7 +218,7 @@ const generateSamples = (event : ProgramEvent) : void => {
         [96, 3, 0.60,
          128, 5, 1.0,
          160, 12, 0.20], 
-        0.50,
+        0.40,
         OscType.Square, 
         Ramp.Exponential);
 
@@ -234,7 +234,7 @@ const generateSamples = (event : ProgramEvent) : void => {
         [224, 2, 0.70,
          160, 3, 1.0,
          144, 6, 0.20], 
-        1.15,
+        1.25,
         OscType.Triangle, 
         Ramp.Exponential);
         
@@ -242,7 +242,7 @@ const generateSamples = (event : ProgramEvent) : void => {
         [160, 4, 0.60,
          100, 2, 0.80,
          256, 8, 1.00],
-        0.40,
+        0.35,
         OscType.Square, 
         Ramp.Instant);
 
@@ -266,7 +266,7 @@ const generateSamples = (event : ProgramEvent) : void => {
     event.createSample(SoundEffect.Undo,
         [128, 5, 1.0,
          96, 3, 0.50], 
-        0.50,
+        0.40,
         OscType.Sawtooth, 
         Ramp.Instant);
 
@@ -290,7 +290,7 @@ const generateSamples = (event : ProgramEvent) : void => {
         event.createSample(SoundEffect.Select + i,
             [128 - i*8, 8 + i*2, 1.0,
             96 - i*8, 4, 0.20], 
-            0.30,
+            0.30 - i*0.05,
             OscType.Square, 
             Ramp.Instant);
     }
@@ -305,7 +305,7 @@ const generateSamples = (event : ProgramEvent) : void => {
          160, 8, 0.80,
          192, 32, 0.50, 
         ], 
-        0.40,
+        0.35,
         OscType.Square, 
         Ramp.Exponential);
 /*
@@ -334,6 +334,22 @@ const generateMusic = (event : ProgramEvent) : void => {
         0.35,
         OscType.Square, 
         Ramp.Instant);
+
+    // Fine, it ain't no music.
+    event.createSample(SoundEffect.IntroMusic,
+        [
+        Note.C3, 7.5, 0.20,
+        Note.D3, 7.5, 0.50,
+        Note.E3, 7.5, 0.70,
+        Note.D3, 7.5, 1.0,
+        Note.C3, 7.5, 1.0,
+        Note.D3, 7.5, 1.0,
+        Note.E3, 7.5, 1.0,
+        Note.F3, 30, 0.50,
+        ], 
+        1.25,
+        OscType.Triangle, 
+        Ramp.Exponential);
 }
 
 

@@ -3,6 +3,22 @@ import { OscType, Ramp, Sample } from "./sample.js";
 import { Scene } from "./scene.js";
 
 
+// Heh, class action
+class Action {
+
+    
+    public keys : string[];
+    public specialKeys : string[];
+
+
+    constructor(keys : string[], specialKeys : string[]) {
+
+        this.keys = Array.from(keys);
+        this.specialKeys = Array.from(specialKeys);
+    }
+}
+
+
 export const enum InputState {
 
     Up = 0,
@@ -21,7 +37,6 @@ export const enum TransitionType {
 };
 
 
-
 export class ProgramEvent {
 
 
@@ -31,8 +46,10 @@ export class ProgramEvent {
 
     // Input
     private keys : Map<string, InputState>;
-    private preventedKeys : Array<string>;
-    private actions : Map<number, string[]>;
+    private preventedKeys : string[];
+    private specialKeys : Map<string, InputState>;
+    private preventedSpecialKeys : string[];
+    private actions : Map<number, Action>;
     private anyKeyPressed : boolean = false;
 
 
@@ -79,24 +96,32 @@ export class ProgramEvent {
         //
         this.keys = new Map<string, InputState> ();
         this.preventedKeys = new Array<string> ();
-        this.actions = new Map<number, string[]> ();
+
+        this.specialKeys = new Map<string, InputState> ();
+        this.preventedSpecialKeys = new Array<string> ();
+
+        this.actions = new Map<number, Action> ();
 
         window.addEventListener("keydown", (e : KeyboardEvent) => {
 
-            if (this.preventedKeys.includes(e.code)) {
+            if (this.preventedKeys.includes(e.code) ||
+                this.preventedSpecialKeys.includes(e.key)) {
 
                 e.preventDefault();
             }
             this.keyEvent(e.code, InputState.Pressed);
+            this.specialKeyEvent(e.key, InputState.Pressed);
         });
 
         window.addEventListener("keyup", (e : KeyboardEvent) => {
 
-            if (this.preventedKeys.includes(e.code)) {
+            if (this.preventedKeys.includes(e.code) ||
+                this.preventedSpecialKeys.includes(e.key)) {
 
                 e.preventDefault();
             }
             this.keyEvent(e.code, InputState.Released);
+            this.specialKeyEvent(e.key, InputState.Released);
         });
 
         window.addEventListener("mousedown", () => { window.focus(); });
@@ -123,10 +148,20 @@ export class ProgramEvent {
 
     private keyEvent(key : string, state : InputState) : void {
 
-        if (this.keys.get(key) === state-2)
+        if (this.keys.get(key) === state - 2)
             return;
 
         this.keys.set(key, state);
+        this.anyKeyPressed ||= Boolean(state & 1);
+    }
+
+
+    private specialKeyEvent(key : string, state : InputState) : void {
+
+        if (this.specialKeys.get(key) === state - 2)
+            return;
+
+        this.specialKeys.set(key, state);
         this.anyKeyPressed ||= Boolean(state & 1);
     }
 
@@ -138,27 +173,43 @@ export class ProgramEvent {
             const v : InputState = this.keys.get(k) ?? InputState.Up;
             if (v > 1) {
                 
-                this.keys.set(k, v-2);
+                this.keys.set(k, v - 2);
+            }
+        }
+        for (const k of this.specialKeys.keys()) {
+
+            const v : InputState = this.specialKeys.get(k) ?? InputState.Up;
+            if (v > 1) {
+                
+                this.specialKeys.set(k, v - 2);
             }
         }
         this.anyKeyPressed = false;
     }
 
 
-    public addAction(index : number, keys : string[], prevent : boolean = true) : void {
+    public addAction(index : number, keys : string[], 
+        specialKeys : string[] = [], 
+        prevent : boolean = true) : void {
 
-        this.actions.set(index, Array.from(keys));
+        this.actions.set(index, new Action(keys, specialKeys));
         if (prevent) {
 
             this.preventedKeys.push(...keys);
+            this.preventedSpecialKeys.push(...specialKeys);
         }
     }
 
 
     public getAction(index : number) : InputState {
 
-        const keys : string[] | undefined = this.actions.get(index) ?? [];
-        for (const k of keys) {
+        const a : Action | undefined = this.actions.get(index);
+        if (a === undefined) {
+
+            return InputState.Up;
+        }
+
+        for (const k of a.keys) {
             
             const state : InputState = this.keys.get(k) ?? InputState.Up;
             if (state != InputState.Up) {
@@ -166,6 +217,16 @@ export class ProgramEvent {
                 return state;
             }
         }
+
+        for (const k of a.specialKeys) {
+            
+            const state : InputState = this.specialKeys.get(k) ?? InputState.Up;
+            if (state != InputState.Up) {
+
+                return state;
+            }
+        }
+        
         return InputState.Up;
     }
 
@@ -218,6 +279,11 @@ export class ProgramEvent {
     public initialize() : void {
 
         this.audioContext = new AudioContext();
+        // Possibly redundant
+        try {
+
+            this.audioContext.resume();
+        } catch(e){};
     }
 
 

@@ -2,12 +2,9 @@ import { Align, Bitmap, Canvas, Flip } from "./canvas.js";
 import { InputState, ProgramEvent } from "./event.js";
 import { Scene } from "./scene.js";
 import { Action, BitmapAsset, SoundEffect } from "./mnemonics.js";
-import { Vector } from "./vector.js";
-import { negMod } from "./math.js";
 import { drawTransition } from "./transition.js";
 import { Menu, MenuButton } from "./menu.js";
 import { storeProgress } from "./progress.js";
-
 
 
 export class TitleScreen implements Scene {
@@ -155,7 +152,7 @@ export class TitleScreen implements Scene {
                     }
                     else {
 
-                        event.changeScene("ls", event);
+                        event.changeScene("c", event);
                     }
                 }
                 this.transitionTimer = 0.0;

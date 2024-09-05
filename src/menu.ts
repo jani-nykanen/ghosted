@@ -2,6 +2,7 @@ import { Canvas } from "./canvas.js";
 import { InputState, ProgramEvent } from "./event.js";
 import { negMod } from "./math.js";
 import { Action, BitmapAsset, SoundEffect } from "./mnemonics.js";
+import { drawBox } from "./box.js";
 
 
 export class MenuButton {
@@ -135,13 +136,7 @@ export class Menu {
         const dy : number = canvas.height/2 - this.height*FONT_YOFF/2 + yoff;
 
         // Box
-        for (let i = 2; i >= 0 ; -- i) {
-
-            canvas.fillRect(dx - i, dy - i, 
-                this.width*8 + i*2, this.height*FONT_YOFF + i*2, 
-                ["#000000", "#929292", "#ffffff"][i]);
-        }
-
+        drawBox(canvas, dx, dy, this.width*8, this.height*FONT_YOFF);
         // Text
         for (let i = 0; i < this.buttons.length; ++ i) {
 

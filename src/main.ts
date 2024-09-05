@@ -2,12 +2,13 @@ import { generateAssets } from "./assetgenerator.js";
 import { Align, Canvas } from "./canvas.js";
 import { ProgramEvent } from "./event.js";
 import { Game } from "./game.js";
-import { Action, BitmapAsset } from "./mnemonics.js";
+import { Action, BitmapAsset, SoundEffect } from "./mnemonics.js";
 import { Program } from "./program.js";
 import { LevelMenu } from "./levelmenu.js";
 import { TitleScreen } from "./titlescreen.js";
 import { loadProgress } from "./progress.js";
 import { Ending } from "./ending.js";
+import { ControlGuide } from "./controlguide.js";
 
 
 const initialEvent = (event : ProgramEvent) : void => {
@@ -18,6 +19,7 @@ const initialEvent = (event : ProgramEvent) : void => {
     event.loadBitmap(BitmapAsset.RawGameArt, "g.png");
 
     event.addScene("t", new TitleScreen(completedLevels), true);
+    event.addScene("c", new ControlGuide());
     event.addScene("ls", new LevelMenu(completedLevels));
     event.addScene("g", new Game(completedLevels));
     event.addScene("e", new Ending());
@@ -39,11 +41,13 @@ const onloadEvent = (event : ProgramEvent) : void => {
     event.addAction(Action.Down, ["ArrowDown", "KeyS"]);
     event.addAction(Action.Choose, ["Space", "Enter"]);
     event.addAction(Action.Pause, ["Escape", "Enter"]);
-    event.addAction(Action.Restart, ["KeyR"]);
-    event.addAction(Action.Undo, ["Backspace", "KeyZ"]);
+    event.addAction(Action.Restart, [], ["r", "R"]);
+    event.addAction(Action.Undo, ["Backspace"], ["z", "Z"]);
     event.addAction(Action.Back, ["Escape"]);
 
     generateAssets(event);
+
+    event.playSample(SoundEffect.Select);
 }
 
 

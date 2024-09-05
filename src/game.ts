@@ -242,6 +242,11 @@ export class Game implements Scene {
 
     private undo(event : ProgramEvent) : void {
 
+        if (this.isMoving) {
+
+            this.stateBuffer.push(new PuzzleState(this.stateBuffer[this.stateBuffer.length - 1]));
+        }
+
         if (this.stateBuffer.length < 2) {
 
             return;

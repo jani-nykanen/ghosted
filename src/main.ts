@@ -35,10 +35,12 @@ const initialScreen = (canvas : Canvas) : void => {
 
 const onloadEvent = (event : ProgramEvent) : void => {
 
-    event.addAction(Action.Left, ["ArrowLeft", "KeyA"]);
-    event.addAction(Action.Right, ["ArrowRight", "KeyD"]);
-    event.addAction(Action.Up, ["ArrowUp", "KeyW"]);
-    event.addAction(Action.Down, ["ArrowDown", "KeyS"]);
+    // Note: WASD is disabled as it might overlap with R and Z
+    // keys on some less common keyboard layouts
+    event.addAction(Action.Left, ["ArrowLeft"]); //, "KeyA"]);
+    event.addAction(Action.Right, ["ArrowRight"]); //,"KeyD"]);
+    event.addAction(Action.Up, ["ArrowUp"]); //,"KeyW"]);
+    event.addAction(Action.Down, ["ArrowDown"]); //, "KeyS"]);
     event.addAction(Action.Choose, ["Space", "Enter"]);
     event.addAction(Action.Pause, ["Escape", "Enter"]);
     event.addAction(Action.Restart, [], ["r", "R"]);

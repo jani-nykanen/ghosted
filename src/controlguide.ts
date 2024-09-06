@@ -1,10 +1,7 @@
-import { Align, Bitmap, Canvas, Flip } from "./canvas.js";
-import { InputState, ProgramEvent } from "./event.js";
+import { Canvas } from "./canvas.js";
+import { ProgramEvent } from "./event.js";
 import { Scene } from "./scene.js";
-import { Action, BitmapAsset, SoundEffect } from "./mnemonics.js";
-import { drawTransition } from "./transition.js";
-import { Menu, MenuButton } from "./menu.js";
-import { storeProgress } from "./progress.js";
+import { BitmapAsset, SoundEffect } from "./mnemonics.js";
 import { drawBox } from "./box.js";
 
 
@@ -12,7 +9,7 @@ import { drawBox } from "./box.js";
 const GUIDE : string = 
 `    CONTROLS:
 
-ARROWS/WASD:  MOVE
+ARROWS:       MOVE
 ESC/ENTER:    PAUSE
 R:            RESTART
 BACKSPACE/Z:  UNDO`;

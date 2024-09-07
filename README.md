@@ -3,6 +3,13 @@
 ...is a puzzle game made for js13k 2024 game programming competition.
 
 
+## Playing
+
+The submitted draft is available here: https://dev.js13kgames.com/drafts/ghosted
+
+The final link will be updated here once the game is accepted.
+
+
 ## Building
 
 ### Prerequisites: 

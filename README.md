@@ -5,9 +5,7 @@
 
 ## Playing
 
-The submitted draft is available here: https://dev.js13kgames.com/drafts/ghosted
-
-The final link will be updated here once the game is accepted.
+[Click here](https://dev.js13kgames.com/2024/games/ghosted)
 
 
 ## Building
